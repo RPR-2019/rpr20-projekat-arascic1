@@ -40,7 +40,7 @@ public class DAO {
         try {
             getPassword.setString(1, usernameHash);
             ResultSet rs = getPassword.executeQuery();
-            if(!rs.next()) return false;
+            if(!rs.next()) return null;
             if(rs.getString(1).equals(passHash)) {
                 if (rs.getInt(2) == 1) return true;
                 else if (rs.getInt(2) == 0) return false;

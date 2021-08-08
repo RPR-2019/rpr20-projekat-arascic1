@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<?import java.net.URL?>
-<GridPane fx:id="main" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="387.0" prefWidth="342.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<GridPane fx:id="main" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="401.0" prefWidth="329.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ba.unsa.etf.rpr.controllers.InspectorController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
   </columnConstraints>
@@ -19,19 +21,48 @@
     </rowConstraints>
    <children>
        <Label contentDisplay="CENTER" text="Pregled vama dodijeljenih objekata za inspekciju" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-       <HBox prefHeight="60.0" prefWidth="342.0" GridPane.rowIndex="1">
+      <GridPane GridPane.halignment="LEFT" GridPane.rowIndex="1">
+       <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+         </rowConstraints>
          <children>
-            <Button mnemonicParsing="false" text="Button" />
-            <Label text="Label" />
-            <Button mnemonicParsing="false" text="Button" />
+            <Button fx:id="leftArrow" mnemonicParsing="false" GridPane.halignment="RIGHT">
+               <GridPane.margin>
+                  <Insets right="5.0" />
+               </GridPane.margin>
+            </Button>
+            <Label fx:id="currentDate" alignment="CENTER" text="Label" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+               <font>
+                  <Font size="18.0" />
+               </font></Label>
+            <Button id="rightArrow" fx:id="rightArrow" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="LEFT">
+               <GridPane.margin>
+                  <Insets left="5.0" />
+               </GridPane.margin></Button>
          </children>
-      </HBox>
-       <HBox prefHeight="60.0" prefWidth="342.0" GridPane.rowIndex="2">
-           <children>
-               <ComboBox prefWidth="150.0" GridPane.rowIndex="2" />
+      </GridPane>
+      <GridPane GridPane.rowIndex="2">
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
+         <children>
                <Button mnemonicParsing="false" text="Button" GridPane.rowIndex="2" />
-           </children>
-       </HBox>
-       <ListView prefHeight="330.0" prefWidth="342.0" GridPane.rowIndex="3" />
+               <ComboBox prefWidth="150.0" GridPane.rowIndex="2" />
+         </children>
+      </GridPane>
+       <ListView prefHeight="330.0" prefWidth="342.0" GridPane.rowIndex="3">
+         <GridPane.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </GridPane.margin></ListView>
    </children>
 </GridPane>

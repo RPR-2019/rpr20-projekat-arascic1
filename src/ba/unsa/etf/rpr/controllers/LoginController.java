@@ -41,7 +41,7 @@ public class LoginController {
         Boolean authenticationResponse = DB.authenticate(usernameHash, passwordHash);
         if(authenticationResponse == null) {
             message.setText("Pogrešni pristupni podaci! Pokušajte ponovo.");
-            message.getStyleClass().add("poljeNijeIspravno");
+            message.getStyleClass().add("invalidField");
         }
         else if(authenticationResponse.equals(true)) {
             // upravnik
@@ -63,11 +63,11 @@ public class LoginController {
     private String SHA256(String msg) {
         try {
             final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            final byte[] hash = digest.digest(msg.getBytes("UTF-8"));
+            final byte[] hash = digest.digest(msg.getBytes(StandardCharsets.UTF_8));
             final StringBuilder hexString = new StringBuilder();
-            for (int i = 0; i < hash.length; i++) {
-                final String hex = Integer.toHexString(0xff & hash[i]);
-                if(hex.length() == 1)
+            for (byte b : hash) {
+                final String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1)
                     hexString.append('0');
                 hexString.append(hex);
             }
