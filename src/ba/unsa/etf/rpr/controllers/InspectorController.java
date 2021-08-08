@@ -1,24 +1,40 @@
 package ba.unsa.etf.rpr.controllers;
+import ba.unsa.etf.rpr.models.Business;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
-
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import javafx.scene.layout.GridPane;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+import java.util.ArrayList;
 
 public class InspectorController {
     public Button leftArrow;
     public Button rightArrow;
+    public GridPane main;
     public Label currentDate;
+    public ListView<Business> list;
+    public ComboBox<String> options;
 
     @FXML
     public void initialize() {
+        // postavljanje boje
+        list.getStyleClass().add("azureColor");
+        main.getStyleClass().add("azureColor");
+
+        // populacija ComboBox-a
+        ArrayList<String> opcije = new ArrayList<>();
+        opcije.add("Sve");
+        opcije.add("Preostalo");
+        opcije.add("Završeno");
+        opcije.forEach(str -> options.getItems().add(str));
+
+        // populacija LISTE - baza
+        // TODO
+
         // inicijalizacija slika na buttone sa obje strane labela za datum
         ImageView leftArrowImg = new ImageView("/img/leftArrow.png");
         ImageView rightArrowImg = new ImageView("/img/rightArrow.png");
