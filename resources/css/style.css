@@ -1,3 +1,7 @@
 .poljeNijeIspravno {
    -fx-background-color: lightpink;
 }
+
+#main {
+    -fx-background-color: azure;
+}

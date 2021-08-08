@@ -26,23 +26,31 @@ public class DAO {
                 }
             }
 
-            getPassword = conn.prepareStatement("SELECT passHash FROM USERS WHERE usernameHash=?");
+            getPassword = conn.prepareStatement("SELECT passHash, manager FROM USERS WHERE usernameHash=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public boolean authenticate(String usernameHash, String passHash) {
+    public Boolean authenticate(String usernameHash, String passHash) {
+        /**
+         * If authentication is successful - returns whether the account being authenticated is a manager or not.
+         * Otherwise returns null.
+         */
         try {
             getPassword.setString(1, usernameHash);
             ResultSet rs = getPassword.executeQuery();
             if(!rs.next()) return false;
-            return rs.getString(1).equals(passHash);
+            if(rs.getString(1).equals(passHash)) {
+                if (rs.getInt(2) == 1) return true;
+                else if (rs.getInt(2) == 0) return false;
+            }
+            else return null;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
-        return false;
+        return null;
     }
 
     private void initializeDatabase() {
