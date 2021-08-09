@@ -24,16 +24,19 @@ public class LoginController {
     public Label message;
     public ImageView grb;
 
-    private DAO DB = DAO.getInstance();
+    private DAO DB;
 
     public void logIn(ActionEvent actionEvent) {
         String usernameHash = SHA256(username.getText());
         String passwordHash = SHA256(password.getText());
 
+        DB = DAO.getInstance(usernameHash);
+
         Boolean authenticationResponse = DB.authenticate(usernameHash, passwordHash);
         if(authenticationResponse == null) {
             message.setText("Pogrešni pristupni podaci! Pokušajte ponovo.");
             message.getStyleClass().add("invalidField");
+            return;
         }
         else if(authenticationResponse.equals(true)) {
             // upravnik

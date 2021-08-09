@@ -1,5 +1,8 @@
 package ba.unsa.etf.rpr;
 
+import ba.unsa.etf.rpr.models.Business;
+
+import javax.xml.transform.Result;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.sql.*;
@@ -8,8 +11,9 @@ import java.util.Scanner;
 
 public class DAO {
     private static DAO instance = null;
+    private static String usernameHash;
     private Connection conn;
-    private PreparedStatement getPassword;
+    private PreparedStatement getPassword, getBusinessesForInspector;
 
     private DAO() {
         try {
@@ -27,6 +31,8 @@ public class DAO {
             }
 
             getPassword = conn.prepareStatement("SELECT passHash, manager FROM USERS WHERE usernameHash=?");
+            getBusinessesForInspector = conn.prepareStatement("select * from businesses b " +
+                    "where b.name in (select businessName from inspector_business ib where ib.usernameHash=?)");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -46,6 +52,20 @@ public class DAO {
                 else if (rs.getInt(2) == 0) return false;
             }
             else return null;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<Business> getBusinessesForInspector(String usernameHash) {
+        try {
+            getBusinessesForInspector.setString(1, usernameHash);
+            ResultSet rs = getBusinessesForInspector.executeQuery();
+            while(rs.next()) {
+
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -76,8 +96,9 @@ public class DAO {
         }
     }
 
-    public static DAO getInstance() {
+    public static DAO getInstance(String usernameHash) {
         if (instance == null) instance = new DAO();
+        DAO.usernameHash = usernameHash;
         return instance;
     }
 

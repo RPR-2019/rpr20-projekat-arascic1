@@ -10,7 +10,6 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
-        DAO.getInstance();
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
         primaryStage.setTitle("Inspekcijska Kontrola");
         primaryStage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
