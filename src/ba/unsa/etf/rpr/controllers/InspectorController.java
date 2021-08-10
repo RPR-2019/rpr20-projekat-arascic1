@@ -1,4 +1,5 @@
 package ba.unsa.etf.rpr.controllers;
+import ba.unsa.etf.rpr.DAO;
 import ba.unsa.etf.rpr.models.Business;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,7 +34,7 @@ public class InspectorController {
         opcije.forEach(str -> options.getItems().add(str));
 
         // populacija LISTE - baza
-        // TODO
+        DAO.getInstance().getBusinessesForInspector(DAO.usernameHash);
 
         // inicijalizacija slika na buttone sa obje strane labela za datum
         ImageView leftArrowImg = new ImageView("/img/leftArrow.png");

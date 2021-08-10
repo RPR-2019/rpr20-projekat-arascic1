@@ -6,6 +6,11 @@ public class InspectionFinding {
     private Date issuedAt;
     private String content;
 
+    public InspectionFinding(Date issuedAt, String content) {
+        this.issuedAt = issuedAt;
+        this.content = content;
+    }
+
     public Date getIssuedAt() {
         return issuedAt;
     }
