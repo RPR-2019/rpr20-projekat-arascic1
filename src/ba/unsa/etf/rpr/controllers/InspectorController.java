@@ -1,6 +1,8 @@
 package ba.unsa.etf.rpr.controllers;
 import ba.unsa.etf.rpr.DAO;
-import ba.unsa.etf.rpr.models.Business;
+import ba.unsa.etf.rpr.models.Inspection;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -8,17 +10,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class InspectorController {
     public Button leftArrow;
     public Button rightArrow;
     public GridPane main;
-    public Label currentDate;
-    public ListView<Business> list;
+    public Label currentDateDisplay;
+    public ListView<Inspection> list;
     public ComboBox<String> options;
+
+    private Date currentDate;
+    private ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -27,14 +34,24 @@ public class InspectorController {
         main.getStyleClass().add("azureColor");
 
         // populacija ComboBox-a
-        ArrayList<String> opcije = new ArrayList<>();
-        opcije.add("Sve");
-        opcije.add("Preostalo");
-        opcije.add("Završeno");
-        opcije.forEach(str -> options.getItems().add(str));
+        ArrayList<String> comboOptions = new ArrayList<>();
+        comboOptions.add("Sve");
+        comboOptions.add("Preostalo");
+        comboOptions.add("Završeno");
+        comboOptions.forEach(str -> options.getItems().add(str));
+        options.getSelectionModel().selectFirst();
 
         // populacija LISTE - baza
-        DAO.getInstance().getBusinessesForInspector(DAO.usernameHash);
+        List<Inspection> inspections = DAO.getInstance().getInspectionsForInspector(DAO.usernameHash);
+        Map<Date, ArrayList<Inspection>> inspectionsByDay = new TreeMap<>();
+        inspections.forEach(i -> {
+                inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
+                if(!inspectionsByDay.get(i.getDeadline()).contains(i))
+                    inspectionsByDay.get(i.getDeadline()).add(i);
+            }
+        );
+        observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
+        observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
 
         // inicijalizacija slika na buttone sa obje strane labela za datum
         ImageView leftArrowImg = new ImageView("/img/leftArrow.png");
@@ -48,10 +65,25 @@ public class InspectorController {
 
         // inicijalizacija labele za datum na trenutni sistemski datum
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
+        currentDate = DAO.convertToDateViaInstant(LocalDate.now());
         String date = LocalDate.now().format(formatter);
         if(date.charAt(0) == '0') date = date.substring(1);
         // ako je datum august a ne uradim ovu liniju, ispisaće aVgust
             if(date.contains("avgust")) date = date.replaceFirst("v", "u");
-        currentDate.setText(date);
+        currentDateDisplay.setText(date);
+    }
+
+    private List<Inspection> getLatePendingInspections(Map<Date, ArrayList<Inspection>> inspections) {
+        Iterator<Map.Entry<Date, ArrayList<Inspection>>> itr = inspections.entrySet().iterator();
+        Map.Entry<Date, ArrayList<Inspection>> entry;
+        ArrayList<Inspection> latePendingInspections = new ArrayList<>();
+
+        while(itr.hasNext() && (entry = itr.next()).getKey().before(DAO.convertToDateViaInstant(LocalDate.now()))) {
+            latePendingInspections.addAll(
+                    entry.getValue().stream().filter(i -> i.getIssuedAt() != null).collect(Collectors.toList())
+            );
+        }
+
+        return latePendingInspections;
     }
 }

@@ -68,4 +68,9 @@ public class Business {
     public List<Penalty> getPenalties() {
         return penalties;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

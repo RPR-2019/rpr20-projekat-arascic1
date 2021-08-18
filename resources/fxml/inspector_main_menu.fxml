@@ -36,7 +36,7 @@
                   <Insets right="5.0" />
                </GridPane.margin>
             </Button>
-            <Label fx:id="currentDate" alignment="CENTER" text="Label" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+            <Label fx:id="currentDateDisplay" alignment="CENTER" text="Label" GridPane.columnIndex="1" GridPane.halignment="CENTER">
                <font>
                   <Font size="18.0" />
                </font></Label>
