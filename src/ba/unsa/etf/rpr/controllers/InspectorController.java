@@ -9,6 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -50,7 +51,12 @@ public class InspectorController {
         );
         observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
         observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
+        observableInspections.addAll(
+            getInspectionsFinishedOnDate(inspectionsByDay, DAO.convertToDateViaInstant(LocalDate.now()))
+        );
+
         list.setItems(observableInspections);
+        list.setSelectionModel(new NoSelectionModel<>());
         list.setCellFactory(param -> new InspectionCellController());
 
         // inicijalizacija slika na buttone sa obje strane labela za datum
@@ -79,10 +85,94 @@ public class InspectorController {
 
         while(itr.hasNext() && (entry = itr.next()).getKey().before(DAO.convertToDateViaInstant(LocalDate.now()))) {
             latePendingInspections.addAll(
-                    entry.getValue().stream().filter(i -> i.getIssuedAt() == null).collect(Collectors.toList())
+                entry.getValue().stream().filter(i -> i.getIssuedAt() == null).collect(Collectors.toList())
             );
         }
 
         return latePendingInspections;
+    }
+
+    private List<Inspection> getInspectionsFinishedOnDate(Map<Date, ArrayList<Inspection>> inspections, Date date) {
+        Iterator<Map.Entry<Date, ArrayList<Inspection>>> itr = inspections.entrySet().iterator();
+        Map.Entry<Date, ArrayList<Inspection>> entry;
+        ArrayList<Inspection> finishedOnDate = new ArrayList<>();
+
+        while(itr.hasNext()) {
+            entry = itr.next();
+            finishedOnDate.addAll(
+                entry.getValue().stream()
+                    .filter(i -> i.getIssuedAt() != null)
+                    .filter(i -> i.getIssuedAt().equals(date)).collect(Collectors.toList())
+            );
+        }
+
+        return finishedOnDate;
+    }
+
+    private class NoSelectionModel<T> extends MultipleSelectionModel<T> {
+
+        @Override
+        public ObservableList<Integer> getSelectedIndices() {
+            return FXCollections.emptyObservableList();
+        }
+
+        @Override
+        public ObservableList<T> getSelectedItems() {
+            return FXCollections.emptyObservableList();
+        }
+
+        @Override
+        public void selectIndices(int index, int... indices) {
+        }
+
+        @Override
+        public void selectAll() {
+        }
+
+        @Override
+        public void selectFirst() {
+        }
+
+        @Override
+        public void selectLast() {
+        }
+
+        @Override
+        public void clearAndSelect(int index) {
+        }
+
+        @Override
+        public void select(int index) {
+        }
+
+        @Override
+        public void select(T obj) {
+        }
+
+        @Override
+        public void clearSelection(int index) {
+        }
+
+        @Override
+        public void clearSelection() {
+        }
+
+        @Override
+        public boolean isSelected(int index) {
+            return false;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public void selectPrevious() {
+        }
+
+        @Override
+        public void selectNext() {
+        }
     }
 }

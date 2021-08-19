@@ -20,18 +20,18 @@
    <center>
       <VBox prefWidth="73.0" BorderPane.alignment="CENTER">
          <children>
-            <Label fx:id="name" text="Label">
-               <VBox.margin>
-                  <Insets left="5.0" right="10.0" top="10.0" />
-               </VBox.margin>
+            <Text fx:id="name" strokeType="OUTSIDE" strokeWidth="0.0" text="Text">
                <font>
-                  <Font name="Times New Roman" size="18.0" />
+                  <Font name="Times New Roman" size="22.0" />
                </font>
-            </Label>
+               <VBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="10.0" top="10.0" />
+               </VBox.margin>
+            </Text>
             <HBox>
                <children>
                   <Label fx:id="address" text="Label" />
-                  <Separator orientation="VERTICAL" prefWidth="2.0">
+                  <Separator fx:id="separator" orientation="VERTICAL" prefWidth="2.0">
                      <HBox.margin>
                         <Insets left="5.0" right="4.0" />
                      </HBox.margin></Separator>

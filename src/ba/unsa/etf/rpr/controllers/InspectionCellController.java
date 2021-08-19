@@ -2,28 +2,31 @@ package ba.unsa.etf.rpr.controllers;
 
 import ba.unsa.etf.rpr.DAO;
 import ba.unsa.etf.rpr.models.Inspection;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.RadioButton;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.time.LocalDate;
 
 public class InspectionCellController extends ListCell<Inspection> {
     @FXML
     public RadioButton button;
     @FXML
-    public Label name;
+    public Text name;
     @FXML
     public Label address;
     @FXML
     public BorderPane root;
     @FXML
     public Label deadline;
+    @FXML
+    public Separator separator;
 
     public InspectionCellController() {
         loadFXML();
@@ -43,7 +46,6 @@ public class InspectionCellController extends ListCell<Inspection> {
     @Override
     protected void updateItem(Inspection item, boolean empty) {
         super.updateItem(item, empty);
-
         if(empty || item == null) {
             setText(null);
             setGraphic(null);
@@ -51,7 +53,26 @@ public class InspectionCellController extends ListCell<Inspection> {
         else {
             name.setText(item.getAddressedTo().getName());
             address.setText(item.getAddressedTo().getAddress());
-            deadline.setText(DAO.dateToString(item.getDeadline()));
+
+            if(item.getDeadline().before(DAO.convertToDateViaInstant(LocalDate.now()))) {
+                deadline.setText(DAO.dateToString(item.getDeadline()));
+                separator.setVisible(true);
+                deadline.getStyleClass().add("invalidField");
+            }
+            else {
+                separator.setVisible(false);
+                deadline.setText("");
+            }
+
+            if(item.getIssuedAt() != null && item.getIssuedAt().equals(DAO.convertToDateViaInstant(LocalDate.now()))) {
+                name.getStyleClass().add("strikethrough");
+                button.fire();
+            }
+            else {
+                name.getStyleClass().removeAll("strikethrough");
+                if(button.isSelected()) button.fire();
+            }
+
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             setGraphic(root);
         }
