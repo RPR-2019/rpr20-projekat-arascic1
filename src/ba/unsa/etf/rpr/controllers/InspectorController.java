@@ -4,12 +4,10 @@ import ba.unsa.etf.rpr.models.Inspection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.util.Callback;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -24,7 +22,6 @@ public class InspectorController {
     public ListView<Inspection> list;
     public ComboBox<String> options;
 
-    private Date currentDate;
     private ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
 
     @FXML
@@ -52,6 +49,13 @@ public class InspectorController {
         );
         observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
         observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
+        list.setItems(observableInspections);
+        list.setCellFactory(new Callback<ListView<Inspection>, ListCell<Inspection>>() {
+            @Override
+            public ListCell<Inspection> call(ListView<Inspection> param) {
+                return new InspectionCellController();
+            }
+        });
 
         // inicijalizacija slika na buttone sa obje strane labela za datum
         ImageView leftArrowImg = new ImageView("/img/leftArrow.png");
@@ -65,7 +69,6 @@ public class InspectorController {
 
         // inicijalizacija labele za datum na trenutni sistemski datum
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
-        currentDate = DAO.convertToDateViaInstant(LocalDate.now());
         String date = LocalDate.now().format(formatter);
         if(date.charAt(0) == '0') date = date.substring(1);
         // ako je datum august a ne uradim ovu liniju, ispisaće aVgust

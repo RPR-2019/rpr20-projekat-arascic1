@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class Inspection {
     private String sanctionedBy;
-    private String addressedTo;
+    private Business addressedTo;
     private Date deadline;
     private Penalty penalty;
     private Date issuedAt;
@@ -17,11 +17,11 @@ public class Inspection {
         this.sanctionedBy = sanctionedBy;
     }
 
-    public String getAddressedTo() {
+    public Business getAddressedTo() {
         return addressedTo;
     }
 
-    public void setAddressedTo(String addressedTo) {
+    public void setAddressedTo(Business addressedTo) {
         this.addressedTo = addressedTo;
     }
 

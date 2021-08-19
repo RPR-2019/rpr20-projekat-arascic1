@@ -23,7 +23,7 @@ public class DAO {
     public static String usernameHash;
     private Connection conn;
     private PreparedStatement getPassword, getBusinessesForInspector, getPenaltiesForBusiness, getInspectorByHash;
-    private PreparedStatement getInspectionsForInspector, getPenaltyByID;
+    private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName;
 
     private DAO() {
         try {
@@ -44,11 +44,12 @@ public class DAO {
             getBusinessesForInspector = conn.prepareStatement("select * from businesses b " +
                     "where b.name in (select addressedTo from inspections ib where ib.sanctionedBy=?)");
             getPenaltiesForBusiness = conn.prepareStatement("select * " +
-                    "from inspections i, penalties p" +
+                    "from inspections i, penalties p " +
                     "where i.penalty = p.id and i.addressedTo=?");
             getInspectorByHash = conn.prepareStatement("select * from users where usernameHash=?");
             getInspectionsForInspector = conn.prepareStatement("select * from inspections where sanctionedBy=?");
             getPenaltyByID = conn.prepareStatement("select * from penalties where id=?");
+            getBusinessByName = conn.prepareStatement("select * from businesses where name=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -122,6 +123,8 @@ public class DAO {
          *  This function provides proper parsing of these values.
          */
 
+        if(date == null) return null;
+
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
 
         if(date.equals("today")) return convertToDateViaInstant(LocalDate.now());
@@ -142,20 +145,43 @@ public class DAO {
             ResultSet rs = getBusinessesForInspector.executeQuery();
             List<Business> assignedBusinesses = new ArrayList<>();
             while(rs.next()) {
-                Business newBussiness = new Business();
+                Business newBusiness = new Business();
 
-                newBussiness.setName(rs.getString(1));
-                newBussiness.setAddress(rs.getString(2));
-                newBussiness.setPhoneNumber(rs.getString(3));
-                newBussiness.setImage(new Image(rs.getString(4)));
-                newBussiness.setLastVisit(customDateParser(rs.getString(5)));
-                newBussiness.setNextVisit(customDateParser(rs.getString(6)));
-                newBussiness.setPenalties(getPenaltiesForBusiness(newBussiness));
+                newBusiness.setName(rs.getString(1));
+                newBusiness.setAddress(rs.getString(2));
+                newBusiness.setPhoneNumber(rs.getString(3));
+                newBusiness.setImage(new Image(rs.getString(4)));
+                newBusiness.setLastVisit(customDateParser(rs.getString(5)));
+                newBusiness.setNextVisit(customDateParser(rs.getString(6)));
+                newBusiness.setPenalties(getPenaltiesForBusiness(newBusiness));
 
-                assignedBusinesses.add(newBussiness);
+                assignedBusinesses.add(newBusiness);
             }
 
             return assignedBusinesses;
+        } catch (SQLException | ParseException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Business getBusinessByName(String name) {
+        try {
+            getBusinessByName.setString(1, name);
+            ResultSet rs = getBusinessByName.executeQuery();
+            if(!rs.next()) return null;
+
+            Business newBusiness = new Business();
+            newBusiness.setName(rs.getString("name"));
+            newBusiness.setAddress(rs.getString("address"));
+            newBusiness.setPhoneNumber(rs.getString("phoneNumber"));
+            newBusiness.setImage(new Image(rs.getString("imgURL")));
+            newBusiness.setLastVisit(customDateParser(rs.getString("lastVisit")));
+            newBusiness.setNextVisit(customDateParser(rs.getString("nextVisit")));
+            newBusiness.setPenalties(getPenaltiesForBusiness(newBusiness));
+
+            return newBusiness;
         } catch (SQLException | ParseException throwables) {
             throwables.printStackTrace();
         }
@@ -195,11 +221,15 @@ public class DAO {
                 Inspection newInspection = new Inspection();
 
                 newInspection.setSanctionedBy(usernameHash);
-                newInspection.setAddressedTo(rs.getString("addressedTo"));
+                newInspection.setAddressedTo(getBusinessByName(rs.getString("addressedTo")));
                 newInspection.setDeadline(customDateParser(rs.getString("deadline")));
                 newInspection.setIssuedAt(customDateParser(rs.getString("finished")));
                 newInspection.setPenalty(getPenaltyByID(rs.getInt("penalty")));
+
+                assignedInspections.add(newInspection);
             }
+
+            return assignedInspections;
         } catch (SQLException | ParseException throwables) {
             throwables.printStackTrace();
         }
