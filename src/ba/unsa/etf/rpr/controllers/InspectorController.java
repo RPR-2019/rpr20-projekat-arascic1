@@ -42,7 +42,8 @@ public class InspectorController {
         List<Inspection> inspections = DAO.getInstance().getInspectionsForInspector(DAO.usernameHash);
         Map<Date, ArrayList<Inspection>> inspectionsByDay = new TreeMap<>();
         inspections.forEach(i -> {
-                inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
+                if(!inspectionsByDay.containsKey(i.getDeadline()))
+                    inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
                 if(!inspectionsByDay.get(i.getDeadline()).contains(i))
                     inspectionsByDay.get(i.getDeadline()).add(i);
             }
@@ -50,12 +51,7 @@ public class InspectorController {
         observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
         observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
         list.setItems(observableInspections);
-        list.setCellFactory(new Callback<ListView<Inspection>, ListCell<Inspection>>() {
-            @Override
-            public ListCell<Inspection> call(ListView<Inspection> param) {
-                return new InspectionCellController();
-            }
-        });
+        list.setCellFactory(param -> new InspectionCellController());
 
         // inicijalizacija slika na buttone sa obje strane labela za datum
         ImageView leftArrowImg = new ImageView("/img/leftArrow.png");
@@ -83,7 +79,7 @@ public class InspectorController {
 
         while(itr.hasNext() && (entry = itr.next()).getKey().before(DAO.convertToDateViaInstant(LocalDate.now()))) {
             latePendingInspections.addAll(
-                    entry.getValue().stream().filter(i -> i.getIssuedAt() != null).collect(Collectors.toList())
+                    entry.getValue().stream().filter(i -> i.getIssuedAt() == null).collect(Collectors.toList())
             );
         }
 

@@ -189,6 +189,14 @@ public class DAO {
         return null;
     }
 
+    public static Date stringToDate(String str) throws ParseException {
+        return new SimpleDateFormat("dd.MM.yyyy").parse(str);
+    }
+
+    public static String dateToString(Date d) {
+        return new SimpleDateFormat("dd.MM.yyyy").format(d);
+    }
+
     public Penalty getPenaltyByID(Integer id) {
         try {
             getPenaltyByID.setInt(1, id);

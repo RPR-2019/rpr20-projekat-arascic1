@@ -1,5 +1,6 @@
 package ba.unsa.etf.rpr.controllers;
 
+import ba.unsa.etf.rpr.DAO;
 import ba.unsa.etf.rpr.models.Inspection;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,6 +11,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.layout.BorderPane;
 
 import java.io.IOException;
+import java.text.DateFormat;
 
 public class InspectionCellController extends ListCell<Inspection> {
     @FXML
@@ -20,6 +22,8 @@ public class InspectionCellController extends ListCell<Inspection> {
     public Label address;
     @FXML
     public BorderPane root;
+    @FXML
+    public Label deadline;
 
     public InspectionCellController() {
         loadFXML();
@@ -47,6 +51,7 @@ public class InspectionCellController extends ListCell<Inspection> {
         else {
             name.setText(item.getAddressedTo().getName());
             address.setText(item.getAddressedTo().getAddress());
+            deadline.setText(DAO.dateToString(item.getDeadline()));
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             setGraphic(root);
         }

@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="root" prefHeight="55.0" prefWidth="148.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
 
    <left>
       <RadioButton fx:id="button" mnemonicParsing="false" BorderPane.alignment="CENTER">
@@ -18,24 +18,29 @@
       </RadioButton>
    </left>
    <center>
-      <VBox BorderPane.alignment="CENTER">
+      <VBox prefWidth="73.0" BorderPane.alignment="CENTER">
          <children>
             <Label fx:id="name" text="Label">
                <VBox.margin>
                   <Insets left="5.0" right="10.0" top="10.0" />
                </VBox.margin>
                <font>
-                  <Font name="Times New Roman" size="24.0" />
+                  <Font name="Times New Roman" size="18.0" />
                </font>
             </Label>
-            <Label fx:id="address" text="Label">
+            <HBox>
+               <children>
+                  <Label fx:id="address" text="Label" />
+                  <Separator orientation="VERTICAL" prefWidth="2.0">
+                     <HBox.margin>
+                        <Insets left="5.0" right="4.0" />
+                     </HBox.margin></Separator>
+                  <Label fx:id="deadline" text="Label" />
+               </children>
                <VBox.margin>
-                  <Insets bottom="10.0" left="5.0" right="10.0" />
+                  <Insets left="5.0" right="5.0" />
                </VBox.margin>
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Label>
+            </HBox>
          </children>
       </VBox>
    </center>
