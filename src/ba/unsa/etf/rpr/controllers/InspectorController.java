@@ -23,6 +23,7 @@ public class InspectorController {
     public ListView<Inspection> list;
     public ComboBox<String> options;
 
+    // Holds all inspections for the day of an inspector.
     private ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
 
     @FXML
@@ -38,6 +39,21 @@ public class InspectorController {
         comboOptions.add("Završeno");
         comboOptions.forEach(str -> options.getItems().add(str));
         options.getSelectionModel().selectFirst();
+        options.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if(!newVal.equals(oldVal)) {
+                switch (newVal) {
+                    case "Sve":
+                        list.setItems(observableInspections);
+                        break;
+                    case "Završeno":
+                        list.setItems(observableInspections.filtered(i -> i.getIssuedAt() != null));
+                        break;
+                    case "Preostalo":
+                        list.setItems(observableInspections.filtered(i -> i.getIssuedAt() == null));
+                        break;
+                }
+            }
+        });
 
         // populacija LISTE - baza
         List<Inspection> inspections = DAO.getInstance().getInspectionsForInspector(DAO.usernameHash);
