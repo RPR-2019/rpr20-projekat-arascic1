@@ -23,24 +23,24 @@
        <Label contentDisplay="CENTER" text="Pregled vama dodijeljenih objekata za inspekciju" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
       <GridPane GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.rowIndex="1">
        <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" />
             <ColumnConstraints hgrow="NEVER" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" />
          </columnConstraints>
          <rowConstraints>
             <RowConstraints minHeight="10.0" vgrow="NEVER" />
          </rowConstraints>
          <children>
-            <Button fx:id="leftArrow" mnemonicParsing="false" GridPane.halignment="RIGHT">
+            <Button fx:id="leftArrow" mnemonicParsing="false" onAction="#loadPreviousDayInspections" GridPane.halignment="RIGHT">
                <GridPane.margin>
                   <Insets right="5.0" />
                </GridPane.margin>
             </Button>
-            <Label fx:id="currentDateDisplay" alignment="CENTER" text="Label" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+            <Label fx:id="currentDateDisplay" alignment="CENTER" text="Label" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
                <font>
                   <Font size="18.0" />
                </font></Label>
-            <Button id="rightArrow" fx:id="rightArrow" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="LEFT">
+            <Button id="rightArrow" fx:id="rightArrow" mnemonicParsing="false" onAction="#loadNextDayInspections" GridPane.columnIndex="2" GridPane.halignment="LEFT">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin></Button>

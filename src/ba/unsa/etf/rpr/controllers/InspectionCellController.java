@@ -28,9 +28,9 @@ public class InspectionCellController extends ListCell<Inspection> {
     @FXML
     public Separator separator;
 
-    public InspectionCellController() {
-        loadFXML();
-    }
+    private InspectorController parentController;
+
+    public InspectionCellController() { loadFXML(); }
 
     public void loadFXML() {
         try {
@@ -54,7 +54,7 @@ public class InspectionCellController extends ListCell<Inspection> {
             name.setText(item.getAddressedTo().getName());
             address.setText(item.getAddressedTo().getAddress());
 
-            if(item.getDeadline().before(DAO.convertToDateViaInstant(LocalDate.now()))) {
+            if(item.getDeadline().before(DAO.convertToDateViaInstant(parentController.selectionDate))) {
                 deadline.setText(DAO.dateToString(item.getDeadline()));
                 separator.setVisible(true);
                 deadline.getStyleClass().add("invalidField");
@@ -64,9 +64,10 @@ public class InspectionCellController extends ListCell<Inspection> {
                 deadline.setText("");
             }
 
-            if(item.getIssuedAt() != null && item.getIssuedAt().equals(DAO.convertToDateViaInstant(LocalDate.now()))) {
+            if(item.getIssuedAt() != null &&
+                    item.getIssuedAt().equals(DAO.convertToDateViaInstant(parentController.selectionDate))) {
                 name.getStyleClass().add("strikethrough");
-                button.fire();
+                if(!button.isSelected()) button.fire();
             }
             else {
                 name.getStyleClass().removeAll("strikethrough");
@@ -76,5 +77,13 @@ public class InspectionCellController extends ListCell<Inspection> {
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             setGraphic(root);
         }
+    }
+
+    public InspectorController getParentController() {
+        return parentController;
+    }
+
+    public void setParentController(InspectorController parentController) {
+        this.parentController = parentController;
     }
 }

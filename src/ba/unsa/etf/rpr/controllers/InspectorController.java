@@ -3,6 +3,7 @@ import ba.unsa.etf.rpr.DAO;
 import ba.unsa.etf.rpr.models.Inspection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -10,6 +11,7 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
 import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -22,17 +24,18 @@ public class InspectorController {
     public Label currentDateDisplay;
     public ListView<Inspection> list;
     public ComboBox<String> options;
+    public LocalDate selectionDate;
 
-    // Holds all inspections for the day of an inspector.
     private ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
+    Map<Date, ArrayList<Inspection>> inspectionsByDay = new TreeMap<>();
 
     @FXML
     public void initialize() {
-        // postavljanje boje
+        // color init
         list.getStyleClass().add("azureColor");
         main.getStyleClass().add("azureColor");
 
-        // populacija ComboBox-a
+        // comboBox init
         ArrayList<String> comboOptions = new ArrayList<>();
         comboOptions.add("Sve");
         comboOptions.add("Preostalo");
@@ -55,9 +58,8 @@ public class InspectorController {
             }
         });
 
-        // populacija LISTE - baza
+        // listView init
         List<Inspection> inspections = DAO.getInstance().getInspectionsForInspector(DAO.usernameHash);
-        Map<Date, ArrayList<Inspection>> inspectionsByDay = new TreeMap<>();
         inspections.forEach(i -> {
                 if(!inspectionsByDay.containsKey(i.getDeadline()))
                     inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
@@ -65,17 +67,18 @@ public class InspectorController {
                     inspectionsByDay.get(i.getDeadline()).add(i);
             }
         );
-        observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
-        observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
-        observableInspections.addAll(
-            getInspectionsFinishedOnDate(inspectionsByDay, DAO.convertToDateViaInstant(LocalDate.now()))
-        );
+
+        loadDefaultInspectorView();
 
         list.setItems(observableInspections);
         list.setSelectionModel(new NoSelectionModel<>());
-        list.setCellFactory(param -> new InspectionCellController());
+        list.setCellFactory(param -> {
+            InspectionCellController factory = new InspectionCellController();
+            factory.setParentController(this);
+            return factory;
+        });
 
-        // inicijalizacija slika na buttone sa obje strane labela za datum
+        // time navigation buttons image init
         ImageView leftArrowImg = new ImageView("/img/leftArrow.png");
         ImageView rightArrowImg = new ImageView("/img/rightArrow.png");
         leftArrowImg.setFitWidth(30); leftArrowImg.setFitHeight(30);
@@ -85,13 +88,18 @@ public class InspectorController {
         leftArrow.getStyleClass().add("circularButton");
         rightArrow.getStyleClass().add("circularButton");
 
-        // inicijalizacija labele za datum na trenutni sistemski datum
+        // date label init
+        selectionDate = LocalDate.now();
+        currentDateDisplay.setText(customDateFormatter(LocalDate.now()));
+    }
+
+    private String customDateFormatter(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
-        String date = LocalDate.now().format(formatter);
-        if(date.charAt(0) == '0') date = date.substring(1);
-        // ako je datum august a ne uradim ovu liniju, ispisaće aVgust
-            if(date.contains("avgust")) date = date.replaceFirst("v", "u");
-        currentDateDisplay.setText(date);
+        String formattedDate = date.format(formatter);
+        if(formattedDate.charAt(0) == '0') formattedDate = formattedDate.substring(1);
+        // in the absence of this line, "august" prints as "avgust" - ugly
+        if(formattedDate.contains("avgust")) formattedDate = formattedDate.replaceFirst("v", "u");
+        return formattedDate;
     }
 
     private List<Inspection> getLatePendingInspections(Map<Date, ArrayList<Inspection>> inspections) {
@@ -108,8 +116,8 @@ public class InspectorController {
         return latePendingInspections;
     }
 
-    private List<Inspection> getInspectionsFinishedOnDate(Map<Date, ArrayList<Inspection>> inspections, Date date) {
-        Iterator<Map.Entry<Date, ArrayList<Inspection>>> itr = inspections.entrySet().iterator();
+    private List<Inspection> getInspectionsFinishedOnDate(Date date) {
+        Iterator<Map.Entry<Date, ArrayList<Inspection>>> itr = inspectionsByDay.entrySet().iterator();
         Map.Entry<Date, ArrayList<Inspection>> entry;
         ArrayList<Inspection> finishedOnDate = new ArrayList<>();
 
@@ -125,6 +133,43 @@ public class InspectorController {
         return finishedOnDate;
     }
 
+    private void loadDefaultInspectorView() {
+        /**
+         * Will update data to reflect todays assignments.
+         */
+        observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
+        observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
+        observableInspections.addAll(
+            getInspectionsFinishedOnDate(DAO.convertToDateViaInstant(LocalDate.now()))
+        );
+    }
+
+    private void updateDataOnDateChange() {
+        observableInspections.clear();
+
+        if(selectionDate.equals(LocalDate.now()))
+            loadDefaultInspectorView();
+        else
+            if(selectionDate.isBefore(LocalDate.now()))
+                observableInspections.addAll(getInspectionsFinishedOnDate(DAO.convertToDateViaInstant(selectionDate)));
+            else if(inspectionsByDay.containsKey(DAO.convertToDateViaInstant(selectionDate)))
+                observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(selectionDate))
+                    .stream().filter(i -> i.getIssuedAt() == null).collect(Collectors.toList()));
+
+        list.setItems(observableInspections);
+        options.getSelectionModel().selectFirst();
+    }
+
+    public void loadPreviousDayInspections(ActionEvent actionEvent) {
+        currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.minusDays(1)));
+        updateDataOnDateChange();
+    }
+
+    public void loadNextDayInspections(ActionEvent actionEvent) {
+        currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.plusDays(1)));
+        updateDataOnDateChange();
+    }
+
     private class NoSelectionModel<T> extends MultipleSelectionModel<T> {
 
         @Override
@@ -138,40 +183,31 @@ public class InspectorController {
         }
 
         @Override
-        public void selectIndices(int index, int... indices) {
-        }
+        public void selectIndices(int index, int... indices) {}
 
         @Override
-        public void selectAll() {
-        }
+        public void selectAll() {}
 
         @Override
-        public void selectFirst() {
-        }
+        public void selectFirst() {}
 
         @Override
-        public void selectLast() {
-        }
+        public void selectLast() {}
 
         @Override
-        public void clearAndSelect(int index) {
-        }
+        public void clearAndSelect(int index) {}
 
         @Override
-        public void select(int index) {
-        }
+        public void select(int index) {}
 
         @Override
-        public void select(T obj) {
-        }
+        public void select(T obj) {}
 
         @Override
-        public void clearSelection(int index) {
-        }
+        public void clearSelection(int index) {}
 
         @Override
-        public void clearSelection() {
-        }
+        public void clearSelection() {}
 
         @Override
         public boolean isSelected(int index) {
@@ -184,11 +220,9 @@ public class InspectorController {
         }
 
         @Override
-        public void selectPrevious() {
-        }
+        public void selectPrevious() {}
 
         @Override
-        public void selectNext() {
-        }
+        public void selectNext() {}
     }
 }
