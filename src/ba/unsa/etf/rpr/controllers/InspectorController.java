@@ -26,7 +26,8 @@ public class InspectorController {
     public ComboBox<String> options;
     public LocalDate selectionDate;
 
-    private ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
+    public ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
+    public List<Inspection> changeLog = new ArrayList<>();
     Map<Date, ArrayList<Inspection>> inspectionsByDay = new TreeMap<>();
 
     @FXML
@@ -93,6 +94,10 @@ public class InspectorController {
         currentDateDisplay.setText(customDateFormatter(LocalDate.now()));
     }
 
+    public void notifyInspectionDone() {
+        list.refresh();
+    }
+
     private String customDateFormatter(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
         String formattedDate = date.format(formatter);
@@ -139,9 +144,10 @@ public class InspectorController {
          */
         observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
         observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
-        observableInspections.addAll(
-            getInspectionsFinishedOnDate(DAO.convertToDateViaInstant(LocalDate.now()))
-        );
+
+        List<Inspection> finished = getInspectionsFinishedOnDate(DAO.convertToDateViaInstant(LocalDate.now()));
+        finished.removeAll(observableInspections);
+        observableInspections.addAll(finished);
     }
 
     private void updateDataOnDateChange() {
