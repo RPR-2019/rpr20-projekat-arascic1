@@ -23,7 +23,7 @@ public class DAO {
     public static String usernameHash;
     private Connection conn;
     private PreparedStatement getPassword, getBusinessesForInspector, getPenaltiesForBusiness, getInspectorByHash;
-    private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName;
+    private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName, insertPenalty;
 
     private DAO() {
         try {
@@ -137,6 +137,12 @@ public class DAO {
         return java.util.Date.from(dateToConvert.atStartOfDay()
                 .atZone(ZoneId.systemDefault())
                 .toInstant());
+    }
+
+    public static LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
+        return dateToConvert.toInstant()
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate();
     }
 
     public List<Business> getBusinessesForInspector(String usernameHash) {

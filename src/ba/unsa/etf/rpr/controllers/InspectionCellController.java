@@ -113,6 +113,7 @@ public class InspectionCellController extends ListCell<Inspection> {
     }
 
     private void handle(ActionEvent i) {
+        /*
         if (button.selectedProperty().get()) {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/inspection_form.fxml"));
@@ -141,7 +142,37 @@ public class InspectionCellController extends ListCell<Inspection> {
                 e.printStackTrace();
             }
         } else {
-            button.selectedProperty().setValue(true);
+            // button.selectedProperty().setValue(true);
+        }
+        */
+        try {
+            button.setSelected(!button.isSelected());
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/inspection_form.fxml"));
+            PenaltyFormController controller = new PenaltyFormController();
+            controller.setInspection(
+                parentController.list.getItems().stream()
+                    .filter(q -> q.getAddressedTo().getName().equals(name.getText()))
+                    .collect(Collectors.toList()).get(0)
+            );
+            controller.setParentController(this);
+            fxmlLoader.setController(controller);
+            Parent root = fxmlLoader.load();
+
+            getParentController().changeLog.add(this.getItem());
+
+            Stage stage = new Stage();
+            stage.setTitle(name.getText());
+            stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+
+            stage.setOnHiding(event -> {
+                if(this.getItem().getIssuedAt() != null) button.setSelected(true);
+                else button.setSelected(false);
+            });
+
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
