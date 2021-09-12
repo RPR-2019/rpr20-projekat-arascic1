@@ -1,6 +1,7 @@
 package ba.unsa.etf.rpr.controllers;
 
 import ba.unsa.etf.rpr.DAO;
+import ba.unsa.etf.rpr.IllegalPenaltyException;
 import ba.unsa.etf.rpr.models.Inspection;
 import ba.unsa.etf.rpr.models.Penalty;
 import javafx.event.ActionEvent;
@@ -158,25 +159,29 @@ public class PenaltyFormController {
                 alert.showAndWait();
             }
             else if(inspection.getPenalty() == null) {
-                Optional<ButtonType> result = Optional.empty();
+                Optional<ButtonType> result;
                 if(inspectionStateChanged) {
                     result = emitConfirmationAlert();
                     if(result.isPresent() && result.get() == ButtonType.OK) {
+                        try {
+                            Penalty newPenalty = readPenalty();
+
+                            inspection.setPenalty(newPenalty);
+                            inspection.getAddressedTo().getPenalties().add(newPenalty);
+
+                            registerInspection(i);
+                        } catch(IllegalPenaltyException e) { handleException(e); }
+                    }
+                }
+                else {
+                    try {
                         Penalty newPenalty = readPenalty();
 
                         inspection.setPenalty(newPenalty);
                         inspection.getAddressedTo().getPenalties().add(newPenalty);
 
                         registerInspection(i);
-                    }
-                }
-                else {
-                    Penalty newPenalty = readPenalty();
-
-                    inspection.setPenalty(newPenalty);
-                    inspection.getAddressedTo().getPenalties().add(newPenalty);
-
-                    registerInspection(i);
+                    } catch (IllegalPenaltyException e) { handleException(e); }
                 }
             }
             else if(changeOccured()) {
@@ -203,6 +208,15 @@ public class PenaltyFormController {
         }
     }
 
+    private void handleException(IllegalPenaltyException e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Greška");
+        alert.setHeaderText(e.getMessage());
+        alert.setContentText("Molimo pokušajte ponovo.");
+
+        alert.showAndWait();
+    }
+
     private Optional<ButtonType> emitDeletionAlert() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Molimo potvrdite akciju");
@@ -222,14 +236,16 @@ public class PenaltyFormController {
     private void emitConfirmationAlertAndRegisterInspection(ActionEvent actionEvent) {
         Optional<ButtonType> result = emitConfirmationAlert();
         if(result.isPresent() && result.get() == ButtonType.OK) {
-            Penalty newPenalty = readPenalty();
+            try {
+                Penalty newPenalty = readPenalty();
 
-            if(inspection.getPenalty() != null)
-                inspection.getAddressedTo().getPenalties().remove(inspection.getPenalty());
-            inspection.setPenalty(newPenalty);
-            inspection.getAddressedTo().getPenalties().add(newPenalty);
+                if (inspection.getPenalty() != null)
+                    inspection.getAddressedTo().getPenalties().remove(inspection.getPenalty());
+                inspection.setPenalty(newPenalty);
+                inspection.getAddressedTo().getPenalties().add(newPenalty);
 
-            registerInspection(actionEvent);
+                registerInspection(actionEvent);
+            } catch (IllegalPenaltyException e) { handleException(e); }
         }
     }
 
@@ -240,6 +256,11 @@ public class PenaltyFormController {
         newPenalty.setAmount(penaltyAmount.getValue());
         newPenalty.setMissedDeadlinePenalty(deadlinePenalty.getValue());
         newPenalty.setCeaseOperation(ceaseOperation.getValue());
+
+        if (newPenalty.getAmount().equals(0) && newPenalty.getCeaseOperation().equals(0))
+            throw new IllegalPenaltyException("Kazna nije ni finansijska ni zabrana rada.");
+        if (newPenalty.getAmount().equals(0) && !newPenalty.getMissedDeadlinePenalty().equals(0))
+            throw new IllegalPenaltyException("Kazna ima penal za probijeni rok a nema iznos.");
 
         return newPenalty;
     }
