@@ -167,7 +167,10 @@ public class InspectionCellController extends ListCell<Inspection> {
 
             stage.setOnHiding(event -> {
                 if(this.getItem().getIssuedAt() != null) button.setSelected(true);
-                else button.setSelected(false);
+                else {
+                    button.setSelected(false);
+                    name.getStyleClass().removeAll("strikethrough");
+                }
             });
 
             stage.show();

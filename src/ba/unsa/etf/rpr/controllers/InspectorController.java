@@ -139,8 +139,8 @@ public class InspectorController {
     }
 
     private void loadDefaultInspectorView() {
-        /**
-         * Will update data to reflect todays assignments.
+        /*
+          Will update data to reflect todays assignments.
          */
         observableInspections.addAll(getLatePendingInspections(inspectionsByDay));
         observableInspections.addAll(inspectionsByDay.get(DAO.convertToDateViaInstant(LocalDate.now())));
@@ -176,7 +176,7 @@ public class InspectorController {
         updateDataOnDateChange();
     }
 
-    private class NoSelectionModel<T> extends MultipleSelectionModel<T> {
+    private static class NoSelectionModel<T> extends MultipleSelectionModel<T> {
 
         @Override
         public ObservableList<Integer> getSelectedIndices() {

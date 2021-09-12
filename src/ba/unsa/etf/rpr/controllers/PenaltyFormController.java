@@ -12,6 +12,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public class PenaltyFormController {
 
@@ -23,6 +24,16 @@ public class PenaltyFormController {
 
     private Inspection inspection;
     private InspectionCellController parentController;
+    private boolean inspectionStateChanged = false;
+
+    private boolean changeOccured() {
+        return !(inspection.getPenalty().getAmount().equals(penaltyAmount.getValue())
+            && inspection.getPenalty().getMissedDeadlinePenalty().equals(deadlinePenalty.getValue())
+            && inspection.getPenalty().getReport().equals(report.getText())
+            && inspection.getPenalty().getCeaseOperation().equals(ceaseOperation.getValue())
+            && inspection.getPenalty().getDeadline().equals(DAO.convertToDateViaInstant(deadlinePicker.getValue()))
+            && !inspectionStateChanged);
+    }
 
     private void invalidCurrencyAlert() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -35,16 +46,18 @@ public class PenaltyFormController {
 
     @FXML
     public void initialize() {
-        deadlinePicker.setDayCellFactory(picker -> new DateCell() {
-            public void updateItem(LocalDate date, boolean empty) {
-                super.updateItem(date, empty);
-                LocalDate today = LocalDate.now();
-                setDisable(empty || date.isBefore(today));
+        deadlinePicker.setDayCellFactory(picker ->
+            new DateCell() {
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    LocalDate today = LocalDate.now();
+                    setDisable(empty || date.isBefore(today));
+                }
             }
-        });
+        );
         deadlinePicker.setEditable(false);
 
-        OKChecBox.setOnAction(this::checkOK);
+        OKChecBox.setOnAction(this::cbListener);
 
         StringConverter<Integer> missedDeadlineCurrency = new StringConverter<>() {
             @Override
@@ -54,17 +67,16 @@ public class PenaltyFormController {
 
             @Override
             public Integer fromString(String s) {
+                s = s.strip();
                 String[] strings = s.split(" ");
                 try { return Integer.parseInt(strings[0]); }
                 catch (NumberFormatException ignored) {
-                    invalidCurrencyAlert();
+                    if(!s.equals("")) invalidCurrencyAlert();
                     deadlinePenalty.getEditor().setText("0 KM");
                     return 0;
                 }
             }
         };
-
-
         StringConverter<Integer> penaltyCurrency = new StringConverter<>() {
             @Override
             public String toString(Integer integer) {
@@ -73,10 +85,11 @@ public class PenaltyFormController {
 
             @Override
             public Integer fromString(String s) {
+                s = s.strip();
                 String[] strings = s.split(" ");
                 try { return Integer.parseInt(strings[0]); }
                 catch (NumberFormatException ignored) {
-                    invalidCurrencyAlert();
+                    if(!s.equals("")) invalidCurrencyAlert();
                     penaltyAmount.getEditor().setText("0 KM");
                     return 0;
                 }
@@ -102,15 +115,18 @@ public class PenaltyFormController {
 
                 @Override
                 public Integer fromString(String s) {
+                    s = s.strip();
                     String[] strings = s.split(" ");
                     try { return Integer.parseInt(strings[0]); }
                     catch (NumberFormatException e) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Greška");
-                        alert.setHeaderText("Pogrešan unos dana zabrane rada");
-                        alert.setContentText("Molimo unesite cijeli pozitivni broj.");
+                        if(!s.equals("")) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Greška");
+                            alert.setHeaderText("Pogrešan unos dana zabrane rada");
+                            alert.setContentText("Molimo unesite cijeli pozitivni broj.");
 
-                        alert.showAndWait();
+                            alert.showAndWait();
+                        }
 
                         ceaseOperation.getEditor().setText("0 KM");
                         return 0;
@@ -129,19 +145,21 @@ public class PenaltyFormController {
                 alert.setContentText("Molimo pokušajte ponovo.");
 
                 alert.showAndWait();
-            } else {
-                Penalty newPenalty = new Penalty();
-                newPenalty.setReport(report.getText());
-                newPenalty.setDeadline(DAO.convertToDateViaInstant(deadlinePicker.getValue()));
-                newPenalty.setAmount(penaltyAmount.getValue());
-                newPenalty.setMissedDeadlinePenalty(deadlinePenalty.getValue());
-                newPenalty.setCeaseOperation(ceaseOperation.getValue());
+            }
+            else if(inspection.getPenalty() == null) {
+                Optional<ButtonType> result = Optional.empty();
+                if(inspectionStateChanged) result = emitConfirmationAlert();
+                if(result.isPresent() && result.get() == ButtonType.OK) {
+                    Penalty newPenalty = readPenalty();
 
-                inspection.setPenalty(newPenalty);
-                inspection.getAddressedTo().getPenalties().add(newPenalty);
+                    inspection.setPenalty(newPenalty);
+                    inspection.getAddressedTo().getPenalties().add(newPenalty);
 
-                ((Stage) ((Node) i.getSource()).getScene().getWindow()).close();
-                parentController.parentController.notifyInspectionDone();
+                    registerInspection(i);
+                }
+            }
+            else if(changeOccured()) {
+                emitConfirmationAlertAndRegisterInspection(i);
             }
         });
 
@@ -153,8 +171,48 @@ public class PenaltyFormController {
                 ceaseOperation.getValueFactory().setValue(inspection.getPenalty().getCeaseOperation());
                 report.setText(inspection.getPenalty().getReport());
             }
-            else OKChecBox.setSelected(true);
+            else {
+                OKChecBox.setSelected(true);
+                deadlinePicker.setDisable(true);
+                penaltyAmount.setDisable(true);
+                deadlinePenalty.setDisable(true);
+                ceaseOperation.setDisable(true);
+                report.setDisable(true);
+            }
         }
+    }
+
+    private Optional<ButtonType> emitConfirmationAlert() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Molimo potvrdite akciju");
+        alert.setHeaderText("Pokušavate izmijeniti rezultat inspekcije");
+        alert.setContentText("Da li ste sigurni da to želite?");
+        return alert.showAndWait();
+    }
+
+    private void emitConfirmationAlertAndRegisterInspection(ActionEvent actionEvent) {
+        Optional<ButtonType> result = emitConfirmationAlert();
+        if(result.isPresent() && result.get() == ButtonType.OK) {
+            Penalty newPenalty = readPenalty();
+
+            if(inspection.getPenalty() != null)
+                inspection.getAddressedTo().getPenalties().remove(inspection.getPenalty());
+            inspection.setPenalty(newPenalty);
+            inspection.getAddressedTo().getPenalties().add(newPenalty);
+
+            registerInspection(actionEvent);
+        }
+    }
+
+    private Penalty readPenalty() {
+        Penalty newPenalty = new Penalty();
+        newPenalty.setReport(report.getText());
+        newPenalty.setDeadline(DAO.convertToDateViaInstant(deadlinePicker.getValue()));
+        newPenalty.setAmount(penaltyAmount.getValue());
+        newPenalty.setMissedDeadlinePenalty(deadlinePenalty.getValue());
+        newPenalty.setCeaseOperation(ceaseOperation.getValue());
+
+        return newPenalty;
     }
 
     private void initializeSpinner(
@@ -180,23 +238,44 @@ public class PenaltyFormController {
         this.inspection = inspection;
     }
 
-    public void checkOK(ActionEvent actionEvent) {
-        // CheckBox is already selected prior to this callback
-        // - therefore the following conditional has the effect of querying the state just prior to the callback.
+    public void cbListener(ActionEvent actionEvent) {
         if(OKChecBox.isSelected()) {
-            inspection.setIssuedAt(DAO.convertToDateViaInstant(LocalDate.now()));
+            if(inspection.getPenalty() != null) {
+                Optional<ButtonType> result = emitConfirmationAlert();
+                if(result.isPresent() && result.get() == ButtonType.OK) {
+                    inspection.getAddressedTo().getPenalties().remove(inspection.getPenalty());
+                    inspection.setPenalty(null);
 
-            if (inspection.getIssuedAt().before(inspection.getDeadline())) {
-                parentController.parentController.inspectionsByDay
-                        .get(DAO.convertToDateViaInstant(LocalDate.now())).add(inspection);
-                parentController.parentController.inspectionsByDay
-                        .get(DAO.convertToDateViaInstant(parentController.parentController.selectionDate)).remove(inspection);
-                parentController.parentController.observableInspections.remove(inspection);
+                    inspectionStateChanged = true;
+                }
             }
 
-            ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
-            parentController.parentController.notifyInspectionDone();
+            registerInspection(actionEvent);
         }
+        else if(!OKChecBox.isSelected()) {
+            // CBox was selected - user wants to input a penalty on a previously penalty free inspection
+            deadlinePicker.setDisable(false);
+            penaltyAmount.setDisable(false);
+            deadlinePenalty.setDisable(false);
+            ceaseOperation.setDisable(false);
+            report.setDisable(false);
+            inspectionStateChanged = true;
+        }
+    }
+
+    private void registerInspection(ActionEvent actionEvent) {
+        inspection.setIssuedAt(DAO.convertToDateViaInstant(LocalDate.now()));
+
+        if (inspection.getIssuedAt().before(inspection.getDeadline())) {
+            parentController.parentController.inspectionsByDay
+                    .get(DAO.convertToDateViaInstant(LocalDate.now())).add(inspection);
+            parentController.parentController.inspectionsByDay
+                    .get(DAO.convertToDateViaInstant(parentController.parentController.selectionDate)).remove(inspection);
+            parentController.parentController.observableInspections.remove(inspection);
+        }
+
+        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+        parentController.parentController.notifyInspectionDone();
     }
 
     public void setParentController(InspectionCellController parentController) {
