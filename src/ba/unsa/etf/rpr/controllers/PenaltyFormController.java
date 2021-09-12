@@ -20,7 +20,7 @@ public class PenaltyFormController {
     public DatePicker deadlinePicker;
     public Spinner<Integer> penaltyAmount, deadlinePenalty, ceaseOperation;
     public TextArea report;
-    public Button back, ok;
+    public Button back, ok, deleteBtn;
 
     private Inspection inspection;
     private InspectionCellController parentController;
@@ -136,6 +136,17 @@ public class PenaltyFormController {
             new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
         );
 
+        deleteBtn.setDisable(inspection.getIssuedAt() == null);
+        deleteBtn.setOnAction(i -> {
+            Optional<ButtonType> result = emitDeletionAlert();
+            if(result.isPresent() && result.get() == ButtonType.OK) {
+                inspection.setIssuedAt(null);
+                inspection.setPenalty(null);
+
+                ((Stage) ((Node) i.getSource()).getScene().getWindow()).close();
+            }
+        });
+
         back.setOnAction(i -> ((Stage) ((Node) i.getSource()).getScene().getWindow()).close());
         ok.setOnAction(i -> {
             if(deadlinePicker.getValue() == null) {
@@ -148,8 +159,18 @@ public class PenaltyFormController {
             }
             else if(inspection.getPenalty() == null) {
                 Optional<ButtonType> result = Optional.empty();
-                if(inspectionStateChanged) result = emitConfirmationAlert();
-                if(result.isPresent() && result.get() == ButtonType.OK) {
+                if(inspectionStateChanged) {
+                    result = emitConfirmationAlert();
+                    if(result.isPresent() && result.get() == ButtonType.OK) {
+                        Penalty newPenalty = readPenalty();
+
+                        inspection.setPenalty(newPenalty);
+                        inspection.getAddressedTo().getPenalties().add(newPenalty);
+
+                        registerInspection(i);
+                    }
+                }
+                else {
                     Penalty newPenalty = readPenalty();
 
                     inspection.setPenalty(newPenalty);
@@ -180,6 +201,14 @@ public class PenaltyFormController {
                 report.setDisable(true);
             }
         }
+    }
+
+    private Optional<ButtonType> emitDeletionAlert() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Molimo potvrdite akciju");
+        alert.setHeaderText("Ovo će izbrisati već postojeći inspekcijski nalaz");
+        alert.setContentText("Da li ste sigurni da to želite?");
+        return alert.showAndWait();
     }
 
     private Optional<ButtonType> emitConfirmationAlert() {

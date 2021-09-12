@@ -77,10 +77,15 @@
       </padding>
       <Button fx:id="back" mnemonicParsing="false" text="Nazad">
          <HBox.margin>
-            <Insets left="65.0" />
+            <Insets left="30.0" />
          </HBox.margin>
       </Button>
       <Button fx:id="ok" mnemonicParsing="false" prefHeight="25.0" prefWidth="47.0" text="OK">
+         <HBox.margin>
+            <Insets left="30.0" />
+         </HBox.margin>
+      </Button>
+      <Button fx:id="deleteBtn" mnemonicParsing="false" text="Obriši">
          <HBox.margin>
             <Insets left="30.0" />
          </HBox.margin>
