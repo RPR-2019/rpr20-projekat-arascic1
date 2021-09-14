@@ -11,9 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 public class InspectionCellController extends ListCell<Inspection> {
     @FXML
@@ -59,11 +57,14 @@ public class InspectionCellController extends ListCell<Inspection> {
             if(item.getDeadline().before(DAO.convertToDateViaInstant(parentController.selectionDate))) {
                 deadline.setText(DAO.dateToString(item.getDeadline()));
                 separator.setVisible(true);
+                deadline.getStyleClass().removeAll("beforeDeadline");
                 deadline.getStyleClass().add("invalidField");
             }
             else {
                 separator.setVisible(false);
                 deadline.setText("");
+                deadline.getStyleClass().removeAll("beforeDeadline");
+                deadline.getStyleClass().removeAll("invalidField");
             }
 
             if(item.getIssuedAt() != null &&

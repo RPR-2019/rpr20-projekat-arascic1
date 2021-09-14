@@ -1,5 +1,6 @@
 package ba.unsa.etf.rpr.controllers;
 import ba.unsa.etf.rpr.DAO;
+import ba.unsa.etf.rpr.models.Business;
 import ba.unsa.etf.rpr.models.Inspection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,6 +11,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
+import javax.swing.*;
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -25,6 +27,7 @@ public class InspectorController {
     public ListView<Inspection> list;
     public ComboBox<String> options;
     public LocalDate selectionDate;
+    public CheckBox cbSort;
 
     public ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
     public List<Inspection> changeLog = new ArrayList<>();
@@ -56,6 +59,7 @@ public class InspectorController {
                         list.setItems(observableInspections.filtered(i -> i.getIssuedAt() == null));
                         break;
                 }
+                cbSort.setSelected(false);
             }
         });
 
@@ -150,6 +154,17 @@ public class InspectorController {
         observableInspections.addAll(finished);
     }
 
+    public void sort() {
+        ArrayList<Inspection> temp = new ArrayList<>(observableInspections);
+        if(cbSort.isSelected()) {
+            temp.sort(Comparator.comparing((Inspection i) -> i.getAddressedTo().getAddress()));
+            list.setItems(FXCollections.observableArrayList(temp));
+        }
+        else {
+            list.setItems(observableInspections);
+        }
+    }
+
     public void updateDataOnDateChange() {
         observableInspections.clear();
 
@@ -167,11 +182,13 @@ public class InspectorController {
     }
 
     public void loadPreviousDayInspections(ActionEvent actionEvent) {
+        if(cbSort.isSelected()) cbSort.setSelected(false);
         currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.minusDays(1)));
         updateDataOnDateChange();
     }
 
     public void loadNextDayInspections(ActionEvent actionEvent) {
+        if(cbSort.isSelected()) cbSort.setSelected(false);
         currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.plusDays(1)));
         updateDataOnDateChange();
     }

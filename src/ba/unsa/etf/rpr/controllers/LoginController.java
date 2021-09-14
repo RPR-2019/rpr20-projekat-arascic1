@@ -72,6 +72,6 @@ public class LoginController {
     }
 
     public void resetPassField(MouseEvent mouseEvent) {
-        if(!password.getText().isEmpty() && message.getText().contains("Pogrešni")) password.setText("");
+        if(!password.getText().isEmpty()) password.setText("");
     }
 }
