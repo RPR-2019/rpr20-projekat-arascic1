@@ -1,6 +1,7 @@
 package ba.unsa.etf.rpr.controllers;
 
 import ba.unsa.etf.rpr.DAO;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -9,12 +10,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.concurrent.Semaphore;
 
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
 
@@ -22,7 +24,7 @@ public class LoginController {
     public TextField username;
     public PasswordField password;
     public Label message;
-    public ImageView grb;
+    public Label loading;
 
     private DAO DB;
 
@@ -31,27 +33,64 @@ public class LoginController {
         String passwordHash = SHA256(password.getText());
 
         DB = DAO.getInstance();
-
         Boolean authenticationResponse = DB.authenticate(usernameHash, passwordHash);
-        if(authenticationResponse == null) {
-            message.setText("Pogrešni pristupni podaci! Pokušajte ponovo.");
-            message.getStyleClass().add("invalidField");
-        }
-        else if(authenticationResponse.equals(true)) {
-            // upravnik
-        }
-        else if(authenticationResponse.equals(false)) {
+        loading.setVisible(true);
+        Semaphore semaphore = new Semaphore(1);
+
+        Thread authenticationProcess = new Thread(() -> {
+            loading.setVisible(true);
             try {
-                Parent root = FXMLLoader.load(getClass().getResource("/fxml/inspector_main_menu.fxml"));
-                Stage stage = new Stage();
-                stage.setTitle("Inspekcijska Kontrola");
-                stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
-                ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
-                stage.show();
-            } catch (IOException e) {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+
+            if (authenticationResponse == null) {
+                Platform.runLater(() -> {
+                    message.setText("Pogrešni pristupni podaci! Pokušajte ponovo.");
+                    message.getStyleClass().add("invalidField");
+                });
+            } else if (authenticationResponse.equals(true)) {
+                // upravnik
+            } else if (authenticationResponse.equals(false)) {
+                try {
+                    Parent root = FXMLLoader.load(getClass().getResource("/fxml/inspector_main_menu.fxml"));
+                    Platform.runLater(() -> {
+                        Stage stage = new Stage();
+                        stage.setTitle("Inspekcijska Kontrola");
+                        stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+                        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+                        stage.show();
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            semaphore.release();
+            loading.setVisible(false);
+        });
+
+        Thread loadingMessage = new Thread(() -> { synchronized (this) {
+            while(semaphore.availablePermits() == 1);
+            int counter = 0;
+            do {
+                counter++;
+                StringBuilder dots = new StringBuilder();
+                dots.append(".".repeat(Math.max(0, counter % 10)));
+                try {
+                    Platform.runLater(() -> loading.setText("loading" + dots.toString()));
+                    wait(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } while (semaphore.availablePermits() == 0);
+        }});
+
+        Platform.runLater(() -> {
+            authenticationProcess.start();
+            loadingMessage.start();
+        });
     }
 
     private String SHA256(String msg) {
@@ -66,7 +105,7 @@ public class LoginController {
                 hexString.append(hex);
             }
             return hexString.toString();
-        } catch(Exception ex){
+        } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
     }

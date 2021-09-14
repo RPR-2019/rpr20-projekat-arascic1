@@ -66,13 +66,12 @@ public class InspectorController {
         // listView init
         List<Inspection> inspections = DAO.getInstance().getInspectionsForInspector(DAO.usernameHash);
         inspections.forEach(i -> {
-                if(!inspectionsByDay.containsKey(i.getDeadline()))
-                    inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
-                if(!inspectionsByDay.get(i.getDeadline()).contains(i))
-                    inspectionsByDay.get(i.getDeadline()).add(i);
-            }
+                    if (!inspectionsByDay.containsKey(i.getDeadline()))
+                        inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
+                    if (!inspectionsByDay.get(i.getDeadline()).contains(i))
+                        inspectionsByDay.get(i.getDeadline()).add(i);
+                }
         );
-
         loadDefaultInspectorView();
 
         list.setItems(observableInspections);

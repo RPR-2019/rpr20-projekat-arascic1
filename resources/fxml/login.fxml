@@ -3,7 +3,6 @@
 <?import java.net.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
@@ -67,10 +66,10 @@
             <Insets left="10.0" top="8.0" />
          </GridPane.margin>
       </Label>
-      <ImageView fx:id="grb" fitHeight="50.0" fitWidth="56.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+      <Label fx:id="loading" GridPane.columnIndex="1" GridPane.rowIndex="4">
          <GridPane.margin>
-            <Insets right="30.0" />
+            <Insets bottom="10.0" left="110.0" />
          </GridPane.margin>
-      </ImageView>
+      </Label>
  </children>
 </GridPane>
