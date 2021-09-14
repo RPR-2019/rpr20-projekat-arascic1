@@ -150,7 +150,7 @@ public class InspectorController {
         observableInspections.addAll(finished);
     }
 
-    private void updateDataOnDateChange() {
+    public void updateDataOnDateChange() {
         observableInspections.clear();
 
         if(selectionDate.equals(LocalDate.now()))

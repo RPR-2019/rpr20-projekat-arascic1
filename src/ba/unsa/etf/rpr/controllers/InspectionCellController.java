@@ -77,16 +77,19 @@ public class InspectionCellController extends ListCell<Inspection> {
                 if(item.getIssuedAt().before(item.getDeadline())) {
                     separator.setVisible(true);
                     deadline.setText(DAO.dateToString(item.getDeadline()));
+                    deadline.getStyleClass().removeAll("invalidField");
                     deadline.getStyleClass().add("beforeDeadline");
                 }
                 else if(item.getIssuedAt().after(item.getDeadline())) {
                     separator.setVisible(true);
                     deadline.setText(DAO.dateToString(item.getDeadline()));
+                    deadline.getStyleClass().removeAll("beforeDeadline");
                     deadline.getStyleClass().add("invalidField");
                 }
                 else {
                     separator.setVisible(false);
                     deadline.setText("");
+                    deadline.getStyleClass().removeAll("invalidField");
                     deadline.getStyleClass().removeAll("beforeDeadline");
                 }
             }
@@ -116,11 +119,8 @@ public class InspectionCellController extends ListCell<Inspection> {
 
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/inspection_form.fxml"));
             PenaltyFormController controller = new PenaltyFormController();
-            controller.setInspection(
-                parentController.list.getItems().stream()
-                    .filter(q -> q.getAddressedTo().getName().equals(name.getText()))
-                    .collect(Collectors.toList()).get(0)
-            );
+            controller.setInspection(this.getItem());
+
             controller.setParentController(this);
             fxmlLoader.setController(controller);
             Parent root = fxmlLoader.load();
@@ -132,7 +132,7 @@ public class InspectionCellController extends ListCell<Inspection> {
             stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
 
             stage.setOnHiding(event -> {
-                if(this.getItem().getIssuedAt() != null) button.setSelected(true);
+                if(this.getItem() != null && this.getItem().getIssuedAt() != null) button.setSelected(true);
                 else {
                     button.setSelected(false);
                     name.getStyleClass().removeAll("strikethrough");

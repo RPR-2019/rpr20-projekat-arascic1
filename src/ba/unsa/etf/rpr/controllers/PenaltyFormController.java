@@ -12,7 +12,9 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 
+import java.text.ParseException;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.Optional;
 
 public class PenaltyFormController {
@@ -143,6 +145,8 @@ public class PenaltyFormController {
             if(result.isPresent() && result.get() == ButtonType.OK) {
                 inspection.setIssuedAt(null);
                 inspection.setPenalty(null);
+
+                parentController.parentController.updateDataOnDateChange();
 
                 ((Stage) ((Node) i.getSource()).getScene().getWindow()).close();
             }
