@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -24,9 +25,18 @@ public class LoginController {
     public TextField username;
     public PasswordField password;
     public Label message;
+    public Button btnLogin;
     public Label loading;
 
     private DAO DB;
+
+    private void successfulAuthentication(Thread loadingMessage) {
+        message.getStyleClass().removeAll("invalidField");
+        message.getStyleClass().addAll("beforeDeadline");
+        message.setText("Autentifikacija uspješna - podaci se učitavaju");
+        loadingMessage.start();
+        btnLogin.setDisable(true);
+    }
 
     public void logIn(ActionEvent actionEvent) {
         String usernameHash = SHA256(username.getText());
@@ -36,40 +46,6 @@ public class LoginController {
         Boolean authenticationResponse = DB.authenticate(usernameHash, passwordHash);
         loading.setVisible(true);
         Semaphore semaphore = new Semaphore(1);
-
-        Thread authenticationProcess = new Thread(() -> {
-            loading.setVisible(true);
-            try {
-                semaphore.acquire();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (authenticationResponse == null) {
-                Platform.runLater(() -> {
-                    message.setText("Pogrešni pristupni podaci! Pokušajte ponovo.");
-                    message.getStyleClass().add("invalidField");
-                });
-            } else if (authenticationResponse.equals(true)) {
-                // upravnik
-            } else if (authenticationResponse.equals(false)) {
-                try {
-                    Parent root = FXMLLoader.load(getClass().getResource("/fxml/inspector_main_menu.fxml"));
-                    Platform.runLater(() -> {
-                        Stage stage = new Stage();
-                        stage.setTitle("Inspekcijska Kontrola");
-                        stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
-                        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
-                        stage.show();
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            semaphore.release();
-            loading.setVisible(false);
-        });
 
         Thread loadingMessage = new Thread(() -> { synchronized (this) {
             while(semaphore.availablePermits() == 1);
@@ -85,11 +61,51 @@ public class LoginController {
                     e.printStackTrace();
                 }
             } while (semaphore.availablePermits() == 0);
+            Platform.runLater(() -> loading.setText(""));
         }});
+
+        Thread authenticationProcess = new Thread(() -> {
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (authenticationResponse == null) {
+                Platform.runLater(() -> {
+                    if(!message.getText().contains("podaci"))
+                        message.setText("Pogrešni pristupni podaci! Pokušajte ponovo.");
+                    else message.setText("Pokušajte ponovo.");
+                    message.getStyleClass().add("invalidField");
+                });
+            } else if (authenticationResponse.equals(true)) {
+                Platform.runLater(() -> {
+                    successfulAuthentication(loadingMessage);
+                });
+                // upravnik
+            } else if (authenticationResponse.equals(false)) {
+                Platform.runLater(() -> {
+                    successfulAuthentication(loadingMessage);
+                });
+                try {
+                    Parent root = FXMLLoader.load(getClass().getResource("/fxml/inspector_main_menu.fxml"));
+                    Platform.runLater(() -> {
+                        Stage stage = new Stage();
+                        stage.setTitle("Inspekcijska Kontrola");
+                        stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+                        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+                        stage.show();
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            semaphore.release();
+        });
 
         Platform.runLater(() -> {
             authenticationProcess.start();
-            loadingMessage.start();
         });
     }
 
