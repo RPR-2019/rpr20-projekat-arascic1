@@ -211,12 +211,16 @@ public class InspectorController {
 
             ButtonType ignoreChanges = new ButtonType("Zanemari izmjene");
             ButtonType writeChanges = new ButtonType("Spasi izmjene");
+            ButtonType back = new ButtonType("Nazad");
 
-            alert.getButtonTypes().setAll(writeChanges, ignoreChanges);
+            alert.getButtonTypes().setAll(writeChanges, ignoreChanges, back);
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == writeChanges) {
                 btnSave.fire();
+            }
+            else if(result.get() == back) {
+                throw new RuntimeException();
             }
         }
     }

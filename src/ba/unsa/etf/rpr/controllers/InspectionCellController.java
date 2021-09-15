@@ -126,8 +126,6 @@ public class InspectionCellController extends ListCell<Inspection> {
             fxmlLoader.setController(controller);
             Parent root = fxmlLoader.load();
 
-            getParentController().changeLog.add(this.getItem());
-
             Stage stage = new Stage();
             stage.setTitle(name.getText());
             stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));

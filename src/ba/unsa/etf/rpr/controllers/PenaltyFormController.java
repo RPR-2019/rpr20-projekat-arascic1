@@ -146,6 +146,8 @@ public class PenaltyFormController {
                 inspection.setIssuedAt(null);
                 inspection.setPenalty(null);
 
+                parentController.parentController.changeLog.add(inspection);
+
                 parentController.parentController.updateDataOnDateChange();
 
                 ((Stage) ((Node) i.getSource()).getScene().getWindow()).close();
@@ -168,6 +170,8 @@ public class PenaltyFormController {
                     result = emitConfirmationAlert();
                     if(result.isPresent() && result.get() == ButtonType.OK) {
                         try {
+                            parentController.parentController.changeLog.add(inspection);
+
                             Penalty newPenalty = readPenalty();
 
                             inspection.setPenalty(newPenalty);
@@ -191,6 +195,8 @@ public class PenaltyFormController {
             else if(changeOccured()) {
                 emitConfirmationAlertAndRegisterInspection(i);
             }
+
+            parentController.parentController.changeLog.add(inspection);
         });
 
         if(inspection.getIssuedAt() != null) {
@@ -315,6 +321,8 @@ public class PenaltyFormController {
             report.setDisable(false);
             inspectionStateChanged = true;
         }
+
+        parentController.parentController.changeLog.add(inspection);
     }
 
     private void registerInspection(ActionEvent actionEvent) {
@@ -327,6 +335,8 @@ public class PenaltyFormController {
                     .get(DAO.convertToDateViaInstant(parentController.parentController.selectionDate)).remove(inspection);
             parentController.parentController.observableInspections.remove(inspection);
         }
+
+        parentController.parentController.changeLog.add(inspection);
 
         ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
         parentController.parentController.notifyInspectionDone();

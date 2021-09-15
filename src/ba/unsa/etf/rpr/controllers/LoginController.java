@@ -109,7 +109,13 @@ public class LoginController {
                         Stage stage = new Stage();
                         stage.setTitle("Inspekcijska Kontrola");
                         stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
-                        stage.setOnHiding(i -> loader.<InspectorController>getController().notifyWindowClosing());
+                        stage.setOnCloseRequest(i -> {
+                            try{
+                                loader.<InspectorController>getController().notifyWindowClosing();
+                            } catch (RuntimeException e) {
+                                i.consume();
+                            }
+                        });
                         ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
                         stage.show();
                     });
