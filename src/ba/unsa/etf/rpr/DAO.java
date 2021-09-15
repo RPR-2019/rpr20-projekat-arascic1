@@ -298,6 +298,7 @@ public class DAO {
     }
 
     public static String dateToString(Date d) {
+        if(d == null) return "";
         return new SimpleDateFormat("dd.MM.yyyy").format(d);
     }
 
