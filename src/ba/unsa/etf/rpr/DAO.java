@@ -8,6 +8,7 @@ import javafx.scene.image.Image;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,12 +19,16 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Date;
 
+import static java.sql.Types.NULL;
+
 public class DAO {
     private static DAO instance = null;
     public static String usernameHash;
     private Connection conn;
     private PreparedStatement getPassword, getBusinessesForInspector, getPenaltiesForBusiness, getInspectorByHash;
-    private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName, insertPenalty;
+    private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName;
+    private PreparedStatement updateBusiness, updateInspection, updatePenalty, createPenalty, newPenaltyID;
+    private PreparedStatement getPenaltyForInspection, deletePenalty;
 
     private DAO() {
         try {
@@ -50,8 +55,72 @@ public class DAO {
             getInspectionsForInspector = conn.prepareStatement("select * from inspections where sanctionedBy=?");
             getPenaltyByID = conn.prepareStatement("select * from penalties where id=?");
             getBusinessByName = conn.prepareStatement("select * from businesses where name=?");
+            getPenaltyForInspection = conn.prepareStatement("select penalty from inspections where id=?");
+
+            updateBusiness = conn.prepareStatement("update businesses set name=?, address=?, phoneNumber=?, imgURL=? where businesses.name=?");
+            updateInspection = conn.prepareStatement("update inspections set penalty=?, finished=? where inspections.id=?");
+            updatePenalty = conn.prepareStatement("update penalties set penaltyDeadline=?, amount=?, missedDeadlinePenalty=?, ceaseOperation=?, report=? where penalties.id=?");
+
+            createPenalty = conn.prepareStatement("insert into penalties values(?,?,?,?,?,?)");
+            newPenaltyID = conn.prepareStatement("select max(id)+1 from penalties");
+
+            deletePenalty = conn.prepareStatement("delete from penalties where id=?");
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void writeInspection(Inspection i) {
+        try {
+            getPenaltyForInspection.setInt(1, i.getId());
+            ResultSet penaltyIDRS = getPenaltyForInspection.executeQuery();
+            if(penaltyIDRS.next() && penaltyIDRS.getInt(1) != NULL) {
+                // a penalty is present
+                if(i.getPenalty() == null) {
+                    // the present penalty has been erased
+                    deletePenalty.setInt(1, penaltyIDRS.getInt(1));
+                    deletePenalty.executeUpdate();
+                }
+                else {
+                    // the present penalty has been modified
+                    updatePenalty.setString(1, DAO.dateToString(i.getPenalty().getDeadline()));
+                    updatePenalty.setInt(2, i.getPenalty().getAmount());
+                    updatePenalty.setInt(3, i.getPenalty().getMissedDeadlinePenalty());
+                    updatePenalty.setInt(4, i.getPenalty().getCeaseOperation());
+                    updatePenalty.setString(5, i.getPenalty().getReport());
+                    updatePenalty.setInt(6, penaltyIDRS.getInt(1));
+                    updatePenalty.executeUpdate();
+                }
+                updateInspection.setInt(1, penaltyIDRS.getInt(1));
+            }
+            else if(i.getPenalty() != null) {
+                // no penalty was present, but the user has added one
+                ResultSet newPenaltyIDRS = newPenaltyID.executeQuery();
+                newPenaltyIDRS.next();
+                createPenalty.setInt(1, newPenaltyIDRS.getInt(1));
+                createPenalty.setString(2, DAO.dateToString(i.getPenalty().getDeadline()));
+                createPenalty.setInt(3, i.getPenalty().getAmount());
+                createPenalty.setInt(4, i.getPenalty().getMissedDeadlinePenalty());
+                createPenalty.setInt(5, i.getPenalty().getCeaseOperation());
+                createPenalty.setString(6, i.getPenalty().getReport());
+                createPenalty.executeUpdate();
+
+                updateInspection.setInt(1, newPenaltyIDRS.getInt(1));
+            }
+            else {
+                // no penalty present, finished inspection is penalty free
+                updateInspection.setNull(1, Types.INTEGER);
+            }
+
+            if(i.getIssuedAt() != null)
+                updateInspection.setString(2, DAO.dateToString(i.getIssuedAt()));
+            else
+                updateInspection.setNull(2, Types.VARCHAR);
+
+            updateInspection.setInt(3, i.getId());
+            updateInspection.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
     }
 
@@ -234,6 +303,7 @@ public class DAO {
             while(rs.next()) {
                 Inspection newInspection = new Inspection();
 
+                newInspection.setId(rs.getInt("id"));
                 newInspection.setSanctionedBy(usernameHash);
                 newInspection.setAddressedTo(getBusinessByName(rs.getString("addressedTo")));
                 newInspection.setDeadline(customDateParser(rs.getString("deadline")));

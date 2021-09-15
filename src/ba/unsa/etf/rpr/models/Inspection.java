@@ -8,6 +8,7 @@ public class Inspection {
     private Date deadline;
     private Penalty penalty;
     private Date issuedAt;
+    private Integer id;
 
     public String getSanctionedBy() {
         return sanctionedBy;
@@ -47,5 +48,13 @@ public class Inspection {
 
     public void setIssuedAt(Date issuedAt) {
         this.issuedAt = issuedAt;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }

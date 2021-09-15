@@ -6,9 +6,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import javax.swing.*;
@@ -26,8 +28,9 @@ public class InspectorController {
     public Label currentDateDisplay;
     public ListView<Inspection> list;
     public ComboBox<String> options;
-    public LocalDate selectionDate;
     public CheckBox cbSort;
+    public Button btnSave;
+    public LocalDate selectionDate;
 
     public ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
     public List<Inspection> changeLog = new ArrayList<>();
@@ -99,6 +102,13 @@ public class InspectorController {
 
     public void notifyInspectionDone() {
         list.refresh();
+    }
+
+    public void save(ActionEvent actionEvent) {
+        for(Inspection i : changeLog) {
+            DAO.getInstance().writeInspection(i);
+        }
+        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
     }
 
     private String customDateFormatter(LocalDate date) {
@@ -190,6 +200,25 @@ public class InspectorController {
         if(cbSort.isSelected()) cbSort.setSelected(false);
         currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.plusDays(1)));
         updateDataOnDateChange();
+    }
+
+    public void notifyWindowClosing() {
+        if(!changeLog.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Pažnja!");
+            alert.setHeaderText("Mogući gubitak podataka - imate nespremljene izmjene!");
+            alert.setContentText("");
+
+            ButtonType ignoreChanges = new ButtonType("Zanemari izmjene");
+            ButtonType writeChanges = new ButtonType("Spasi izmjene");
+
+            alert.getButtonTypes().setAll(writeChanges, ignoreChanges);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == writeChanges) {
+                btnSave.fire();
+            }
+        }
     }
 
     private static class NoSelectionModel<T> extends MultipleSelectionModel<T> {

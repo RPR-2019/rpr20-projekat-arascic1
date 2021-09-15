@@ -3,6 +3,7 @@ package ba.unsa.etf.rpr.controllers;
 import ba.unsa.etf.rpr.DAO;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -88,11 +89,26 @@ public class LoginController {
                     successfulAuthentication(loadingMessage);
                 });
                 try {
-                    Parent root = FXMLLoader.load(getClass().getResource("/fxml/inspector_main_menu.fxml"));
+                    /*
+                    FXMLLoader loader = new FXMLLoader( getClass().getResource( fxmlPath ) );
+        Parent root = loader.load();
+        Scene scene = new Scene( root );
+        RootController rc = loader.<RootController>getController();
+
+        appScreen = new AppScreen();
+        appScreen.setFxmlPath( fxmlPath );
+        appScreen.setScene( scene );
+        appScreen.setRootController( rc );
+
+                     */
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/inspector_main_menu.fxml"));
+                    Parent root = loader.load();
+
                     Platform.runLater(() -> {
                         Stage stage = new Stage();
                         stage.setTitle("Inspekcijska Kontrola");
                         stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+                        stage.setOnHiding(i -> loader.<InspectorController>getController().notifyWindowClosing());
                         ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
                         stage.show();
                     });
@@ -104,9 +120,7 @@ public class LoginController {
             semaphore.release();
         });
 
-        Platform.runLater(() -> {
-            authenticationProcess.start();
-        });
+        Platform.runLater(authenticationProcess::start);
     }
 
     private String SHA256(String msg) {
