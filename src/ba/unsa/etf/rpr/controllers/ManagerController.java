@@ -10,7 +10,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.w3c.dom.Text;
 
 public class ManagerController {
     public ListView<Business> LVbusinessList;
@@ -29,10 +28,15 @@ public class ManagerController {
     public void initialize() {
         observableBusinesses.addAll(DAO.getInstance().getAllBusinesses());
         LVbusinessList.setItems(observableBusinesses);
+        img.setImage(new Image("/img/noImage.png"));
+
+        lastVisitField.setEditable(false);
+        nextVisitField.setEditable(false);
 
         LVbusinessList.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
-            if(observableValue != null) wrappedBusiness = new BusinessPropertyWrapper(observableValue.getValue());
             if(oldValue != null) {
+                wrappedBusiness.parallelWriteToBusiness(oldValue);
+
                 nameField.textProperty().unbindBidirectional(wrappedBusiness.name);
                 addressField.textProperty().unbindBidirectional(wrappedBusiness.address);
                 phoneNumberField.textProperty().unbindBidirectional(wrappedBusiness.phoneNumber);
@@ -50,6 +54,12 @@ public class ManagerController {
                 img.setImage(new Image("/img/noImage.png"));
             }
             else {
+                if(observableValue != null) wrappedBusiness = new BusinessPropertyWrapper(observableValue.getValue());
+                if(newValue.getImage() != null) {
+                    img.setPreserveRatio(true);
+                    img.setImage(newValue.getImage());
+                }
+
                 nameField.textProperty().bindBidirectional(wrappedBusiness.name);
                 addressField.textProperty().bindBidirectional(wrappedBusiness.address);
                 phoneNumberField.textProperty().bindBidirectional(wrappedBusiness.phoneNumber);
@@ -62,8 +72,20 @@ public class ManagerController {
 
     private static class BusinessPropertyWrapper {
         private SimpleStringProperty name, address, phoneNumber, url, lastVisit, nextVisit;
+        private static final Object lock = new Object();
 
         public BusinessPropertyWrapper() {}
+
+        public void parallelWriteToBusiness(Business b) {
+            Thread work = new Thread(() -> { synchronized (lock) {
+                b.setName(name.get());
+                b.setAddress(address.get());
+                b.setPhoneNumber(phoneNumber.get());
+                b.setImage(new Image(url.get()));
+            }});
+
+            work.start();
+        }
 
         public BusinessPropertyWrapper(Business b) {
             name = new SimpleStringProperty(b.getName());
