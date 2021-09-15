@@ -83,24 +83,25 @@ public class LoginController {
                 Platform.runLater(() -> {
                     successfulAuthentication(loadingMessage);
                 });
-                // upravnik
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/manager_main_menu.fxml"));
+                    Parent root = loader.load();
+                    Platform.runLater(() -> {
+                        Stage stage = new Stage();
+                        stage.setTitle("Inspekcijska Kontrola");
+                        stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+                        // stage.setOnHiding(i -> loader.<InspectorController>getController().notifyWindowClosing());
+                        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+                        stage.show();
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else if (authenticationResponse.equals(false)) {
                 Platform.runLater(() -> {
                     successfulAuthentication(loadingMessage);
                 });
                 try {
-                    /*
-                    FXMLLoader loader = new FXMLLoader( getClass().getResource( fxmlPath ) );
-        Parent root = loader.load();
-        Scene scene = new Scene( root );
-        RootController rc = loader.<RootController>getController();
-
-        appScreen = new AppScreen();
-        appScreen.setFxmlPath( fxmlPath );
-        appScreen.setScene( scene );
-        appScreen.setRootController( rc );
-
-                     */
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/inspector_main_menu.fxml"));
                     Parent root = loader.load();
 

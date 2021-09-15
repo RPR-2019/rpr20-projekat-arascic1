@@ -28,7 +28,7 @@ public class DAO {
     private PreparedStatement getPassword, getBusinessesForInspector, getPenaltiesForBusiness, getInspectorByHash;
     private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName;
     private PreparedStatement updateBusiness, updateInspection, updatePenalty, createPenalty, newPenaltyID;
-    private PreparedStatement getPenaltyForInspection, deletePenalty;
+    private PreparedStatement getPenaltyForInspection, deletePenalty, getAllBusinesses;
 
     private DAO() {
         try {
@@ -56,6 +56,7 @@ public class DAO {
             getPenaltyByID = conn.prepareStatement("select * from penalties where id=?");
             getBusinessByName = conn.prepareStatement("select * from businesses where name=?");
             getPenaltyForInspection = conn.prepareStatement("select penalty from inspections where id=?");
+            getAllBusinesses = conn.prepareStatement("select * from businesses");
 
             updateBusiness = conn.prepareStatement("update businesses set name=?, address=?, phoneNumber=?, imgURL=? where businesses.name=?");
             updateInspection = conn.prepareStatement("update inspections set penalty=?, finished=? where inspections.id=?");
@@ -68,6 +69,30 @@ public class DAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Business> getAllBusinesses() {
+        try {
+            ResultSet rs = getAllBusinesses.executeQuery();
+            ArrayList<Business> businesses = new ArrayList<>();
+            while(rs.next()) {
+                Business newBusiness = new Business();
+                newBusiness.setName(rs.getString(1));
+                newBusiness.setAddress(rs.getString(2));
+                newBusiness.setPhoneNumber(rs.getString(3));
+                newBusiness.setImage(new Image(rs.getString(4)));
+                newBusiness.setLastVisit(DAO.stringToDate(rs.getString(5)));
+                newBusiness.setNextVisit(DAO.stringToDate(rs.getString(6)));
+
+                businesses.add(newBusiness);
+            }
+
+            return businesses;
+        } catch (SQLException | ParseException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return null;
     }
 
     public void writeInspection(Inspection i) {
@@ -265,6 +290,10 @@ public class DAO {
     }
 
     public static Date stringToDate(String str) throws ParseException {
+        if(str == null) return null;
+        else if(str.equals("today")) return convertToDateViaInstant(LocalDate.now());
+        else if(str.equals("tomorrow")) return convertToDateViaInstant(LocalDate.now().plusDays(1));
+        else if(str.equals("yesterday")) return convertToDateViaInstant(LocalDate.now().minusDays(1));
         return new SimpleDateFormat("dd.MM.yyyy").parse(str);
     }
 
