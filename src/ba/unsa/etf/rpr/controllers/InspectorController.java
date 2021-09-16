@@ -33,7 +33,7 @@ public class InspectorController {
     public LocalDate selectionDate;
 
     public ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
-    public List<Inspection> changeLog = new ArrayList<>();
+    public HashSet<Inspection> changeLog = new HashSet<>();
     Map<Date, ArrayList<Inspection>> inspectionsByDay = new TreeMap<>();
 
     @FXML

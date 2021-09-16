@@ -73,6 +73,7 @@
                               <TextField fx:id="lastVisitField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                               <TextField fx:id="nextVisitField" GridPane.columnIndex="1" GridPane.rowIndex="6" />
                               <ImageView fx:id="img" fitHeight="185.0" fitWidth="202.0" pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
+                              <Button fx:id="dummyBtn" mnemonicParsing="false" text="Button" />
                            </children>
                         </GridPane>
                      </children>

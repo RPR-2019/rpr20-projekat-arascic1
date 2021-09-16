@@ -8,7 +8,6 @@ import javafx.scene.image.Image;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Type;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,7 +27,8 @@ public class DAO {
     private PreparedStatement getPassword, getBusinessesForInspector, getPenaltiesForBusiness, getInspectorByHash;
     private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName;
     private PreparedStatement updateBusiness, updateInspection, updatePenalty, createPenalty, newPenaltyID;
-    private PreparedStatement getPenaltyForInspection, deletePenalty, getAllBusinesses;
+    private PreparedStatement getPenaltyForInspection, deletePenalty, getAllBusinesses, updateInspectionAddressedTo;
+    private PreparedStatement getInspectionIDsForBusiness;
 
     private DAO() {
         try {
@@ -57,10 +57,12 @@ public class DAO {
             getBusinessByName = conn.prepareStatement("select * from businesses where name=?");
             getPenaltyForInspection = conn.prepareStatement("select penalty from inspections where id=?");
             getAllBusinesses = conn.prepareStatement("select * from businesses");
+            getInspectionIDsForBusiness = conn.prepareStatement("select id from inspections where addressedTo=?");
 
             updateBusiness = conn.prepareStatement("update businesses set name=?, address=?, phoneNumber=?, imgURL=? where businesses.name=?");
             updateInspection = conn.prepareStatement("update inspections set penalty=?, finished=? where inspections.id=?");
             updatePenalty = conn.prepareStatement("update penalties set penaltyDeadline=?, amount=?, missedDeadlinePenalty=?, ceaseOperation=?, report=? where penalties.id=?");
+            updateInspectionAddressedTo = conn.prepareStatement("update inspections set addressedTo=? where inspections.id=?");
 
             createPenalty = conn.prepareStatement("insert into penalties values(?,?,?,?,?,?)");
             newPenaltyID = conn.prepareStatement("select max(id)+1 from penalties");
@@ -93,6 +95,28 @@ public class DAO {
         }
 
         return null;
+    }
+
+    public void writeBusiness(Business b, String oldName) {
+        try {
+            updateBusiness.setString(1, b.getName());
+            updateBusiness.setString(2, b.getAddress());
+            updateBusiness.setString(3, b.getPhoneNumber());
+            updateBusiness.setString(4, b.getImage().getUrl());
+            updateBusiness.setString(5, oldName);
+
+            updateBusiness.executeUpdate();
+
+            getInspectionIDsForBusiness.setString(1, oldName);
+            ResultSet IDs = getInspectionIDsForBusiness.executeQuery();
+            while(IDs.next()) {
+                updateInspectionAddressedTo.setString(1, b.getName());
+                updateInspectionAddressedTo.setInt(2, IDs.getInt(1));
+                updateInspectionAddressedTo.executeUpdate();
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     public void writeInspection(Inspection i) {

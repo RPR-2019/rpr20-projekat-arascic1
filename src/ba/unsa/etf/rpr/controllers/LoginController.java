@@ -79,7 +79,8 @@ public class LoginController {
                     else message.setText("Pokušajte ponovo.");
                     message.getStyleClass().add("invalidField");
                 });
-            } else if (authenticationResponse.equals(true)) {
+            }
+            else if (authenticationResponse.equals(true)) {
                 Platform.runLater(() -> {
                     successfulAuthentication(loadingMessage);
                 });
@@ -90,14 +91,21 @@ public class LoginController {
                         Stage stage = new Stage();
                         stage.setTitle("Inspekcijska Kontrola");
                         stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
-                        // stage.setOnHiding(i -> loader.<InspectorController>getController().notifyWindowClosing());
+                        stage.setOnCloseRequest(i -> {
+                            try {
+                                loader.<ManagerController>getController().notifyWindowClosing();
+                            } catch (RuntimeException e) {
+                                i.consume();
+                            }
+                        });
                         ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
                         stage.show();
                     });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } else if (authenticationResponse.equals(false)) {
+            }
+            else if (authenticationResponse.equals(false)) {
                 Platform.runLater(() -> {
                     successfulAuthentication(loadingMessage);
                 });
@@ -110,7 +118,7 @@ public class LoginController {
                         stage.setTitle("Inspekcijska Kontrola");
                         stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
                         stage.setOnCloseRequest(i -> {
-                            try{
+                            try {
                                 loader.<InspectorController>getController().notifyWindowClosing();
                             } catch (RuntimeException e) {
                                 i.consume();
