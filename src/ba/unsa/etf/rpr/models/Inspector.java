@@ -1,7 +1,5 @@
 package ba.unsa.etf.rpr.models;
 
-import java.sql.ResultSet;
-
 public class Inspector {
     private String name;
 

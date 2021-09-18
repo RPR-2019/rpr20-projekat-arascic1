@@ -9,13 +9,12 @@ import javafx.scene.image.Image;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.sql.*;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.Date;
 
 import static java.sql.Types.NULL;
@@ -28,7 +27,7 @@ public class DAO {
     private PreparedStatement getInspectionsForInspector, getPenaltyByID, getBusinessByName;
     private PreparedStatement updateBusiness, updateInspection, updatePenalty, createPenalty, newPenaltyID;
     private PreparedStatement getPenaltyForInspection, deletePenalty, getAllBusinesses, updateInspectionAddressedTo;
-    private PreparedStatement getInspectionIDsForBusiness;
+    private PreparedStatement getInspectionIDsForBusiness, getInspections, getInspectors, getUsernameHash;
 
     private DAO() {
         try {
@@ -58,6 +57,9 @@ public class DAO {
             getPenaltyForInspection = conn.prepareStatement("select penalty from inspections where id=?");
             getAllBusinesses = conn.prepareStatement("select * from businesses");
             getInspectionIDsForBusiness = conn.prepareStatement("select id from inspections where addressedTo=?");
+            getInspections = conn.prepareStatement("select * from inspections");
+            getInspectors = conn.prepareStatement("select * from users where manager=0");
+            getUsernameHash = conn.prepareStatement("select usernameHash from users where name=?");
 
             updateBusiness = conn.prepareStatement("update businesses set name=?, address=?, phoneNumber=?, imgURL=? where businesses.name=?");
             updateInspection = conn.prepareStatement("update inspections set penalty=?, finished=? where inspections.id=?");
@@ -71,6 +73,59 @@ public class DAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getHashForUsername(String username) {
+        try {
+            getUsernameHash.setString(1, username);
+            ResultSet rs = getUsernameHash.executeQuery();
+            if(!rs.next()) return null;
+            return rs.getString(1);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<Inspector> getInspectors() {
+        try {
+            ResultSet rs = getInspectors.executeQuery();
+            ArrayList<Inspector> inspectors = new ArrayList<>();
+            while(rs.next()) {
+                inspectors.add(new Inspector(rs.getString("name")));
+            }
+
+            return inspectors;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<Inspection> getInspections() {
+        try {
+            ResultSet rs = getInspections.executeQuery();
+            ArrayList<Inspection> inspections = new ArrayList<>();
+
+            while(rs.next()) {
+                Inspection newInspection = new Inspection();
+                newInspection.setId(rs.getInt("id"));
+                newInspection.setSanctionedBy(usernameHash);
+                newInspection.setAddressedTo(getBusinessByName(rs.getString("addressedTo")));
+                newInspection.setDeadline(customDateParser(rs.getString("deadline")));
+                newInspection.setIssuedAt(customDateParser(rs.getString("finished")));
+                newInspection.setPenalty(getPenaltyByID(rs.getInt("penalty")));
+                inspections.add(newInspection);
+            }
+
+            return inspections;
+        } catch (SQLException | ParseException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return null;
     }
 
     public List<Business> getAllBusinesses() {
@@ -318,6 +373,7 @@ public class DAO {
         else if(str.equals("today")) return convertToDateViaInstant(LocalDate.now());
         else if(str.equals("tomorrow")) return convertToDateViaInstant(LocalDate.now().plusDays(1));
         else if(str.equals("yesterday")) return convertToDateViaInstant(LocalDate.now().minusDays(1));
+        else if(str.contains("00:00")) return new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH).parse(str);
         return new SimpleDateFormat("dd.MM.yyyy").parse(str);
     }
 
