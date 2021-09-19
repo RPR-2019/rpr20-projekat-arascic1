@@ -12,14 +12,12 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 
-import java.text.ParseException;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Optional;
 
 public class PenaltyFormController {
 
-    public CheckBox OKChecBox;
+    public CheckBox OKCheckBox;
     public DatePicker deadlinePicker;
     public Spinner<Integer> penaltyAmount, deadlinePenalty, ceaseOperation;
     public TextArea report;
@@ -60,7 +58,7 @@ public class PenaltyFormController {
         );
         deadlinePicker.setEditable(false);
 
-        OKChecBox.setOnAction(this::cbListener);
+        OKCheckBox.setOnAction(this::cbListener);
 
         StringConverter<Integer> missedDeadlineCurrency = new StringConverter<>() {
             @Override
@@ -201,14 +199,14 @@ public class PenaltyFormController {
 
         if(inspection.getIssuedAt() != null) {
             if(inspection.getPenalty() != null) {
-                deadlinePicker.setValue(DAO.convertToLocalDateViaInstant(inspection.getIssuedAt()));
+                deadlinePicker.setValue(DAO.convertToLocalDateViaInstant(inspection.getPenalty().getDeadline()));
                 penaltyAmount.getValueFactory().setValue(inspection.getPenalty().getAmount());
                 deadlinePenalty.getValueFactory().setValue(inspection.getPenalty().getMissedDeadlinePenalty());
                 ceaseOperation.getValueFactory().setValue(inspection.getPenalty().getCeaseOperation());
                 report.setText(inspection.getPenalty().getReport());
             }
             else {
-                OKChecBox.setSelected(true);
+                OKCheckBox.setSelected(true);
                 deadlinePicker.setDisable(true);
                 penaltyAmount.setDisable(true);
                 deadlinePenalty.setDisable(true);
@@ -290,16 +288,12 @@ public class PenaltyFormController {
         spinner.increment(); spinner.decrement();
     }
 
-    public Inspection getInspection() {
-        return inspection;
-    }
-
     public void setInspection(Inspection inspection) {
         this.inspection = inspection;
     }
 
     public void cbListener(ActionEvent actionEvent) {
-        if(OKChecBox.isSelected()) {
+        if(OKCheckBox.isSelected()) {
             if(inspection.getPenalty() != null) {
                 Optional<ButtonType> result = emitConfirmationAlert();
                 if(result.isPresent() && result.get() == ButtonType.OK) {
@@ -312,7 +306,7 @@ public class PenaltyFormController {
 
             registerInspection(actionEvent);
         }
-        else if(!OKChecBox.isSelected()) {
+        else if(!OKCheckBox.isSelected()) {
             // CBox was selected - user wants to input a penalty on a previously penalty free inspection
             deadlinePicker.setDisable(false);
             penaltyAmount.setDisable(false);

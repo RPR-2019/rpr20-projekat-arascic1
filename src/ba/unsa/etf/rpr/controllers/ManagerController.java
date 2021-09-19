@@ -4,7 +4,6 @@ import ba.unsa.etf.rpr.DAO;
 import ba.unsa.etf.rpr.models.Business;
 import ba.unsa.etf.rpr.models.Inspection;
 import ba.unsa.etf.rpr.models.Inspector;
-import com.sun.source.tree.Tree;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,7 +18,6 @@ import javafx.stage.Stage;
 
 import java.text.ParseException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ManagerController {
     public ListView<Business> LVbusinessList;
@@ -33,8 +31,7 @@ public class ManagerController {
     public Button dummyBtn;
     public TreeView<String> tvInspections;
 
-    private ObservableList<Business> observableBusinesses = FXCollections.observableArrayList();
-    private ObservableList<Inspection> observableInspections = FXCollections.observableArrayList();
+    private final ObservableList<Business> observableBusinesses = FXCollections.observableArrayList();
     private BusinessPropertyWrapper wrappedBusiness = new BusinessPropertyWrapper();
     private final HashSet<Business> changeLog = new HashSet<>();
     private final HashMap<Business, String> oldNames = new HashMap<>();
@@ -64,31 +61,26 @@ public class ManagerController {
         return data;
     }
 
-    @SuppressWarnings("SuspiciousMethodCalls")
     private void initializeTreeView() {
         Thread task = new Thread(() -> {
             Map<String, Map<Date, List<Inspection>>> data = loadData();
             TreeItem<String> dummyRoot = new TreeItem<>();
 
             List<TreeItem<String>> rootItems = new ArrayList<>();
-            data.keySet().forEach(i -> {
-                rootItems.add(new TreeItem<>(i));
-            });
+            data.keySet().forEach(i -> rootItems.add(new TreeItem<>(i)));
 
             dummyRoot.getChildren().addAll(rootItems);
             dummyRoot.setExpanded(true);
             Platform.runLater(() -> tvInspections.setShowRoot(false));
 
             for(TreeItem<String> inspector : rootItems) {
-                data.get(inspector.getValue()).keySet().forEach(date -> {
-                    inspector.getChildren().add(new TreeItem<>(date.toString()));
-                });
+                data.get(inspector.getValue()).keySet().forEach(date ->
+                    inspector.getChildren().add(new TreeItem<>(date.toString())));
 
                 for(TreeItem<String> dateItem : inspector.getChildren()) {
                     try {
-                        data.get(inspector.getValue()).get(DAO.stringToDate(dateItem.getValue())).forEach(inspection -> {
-                            dateItem.getChildren().add(new TreeItem<>(inspection.getAddressedTo().getName()));
-                        });
+                        data.get(inspector.getValue()).get(DAO.stringToDate(dateItem.getValue())).forEach(inspection ->
+                            dateItem.getChildren().add(new TreeItem<>(inspection.getAddressedTo().getName())));
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -182,6 +174,7 @@ public class ManagerController {
             alert.getButtonTypes().setAll(writeChanges, ignoreChanges, back);
 
             Optional<ButtonType> result = alert.showAndWait();
+            //noinspection OptionalGetWithoutIsPresent
             if (result.get() == writeChanges) {
                 dummyBtn.fire();
             }

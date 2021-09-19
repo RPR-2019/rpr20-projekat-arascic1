@@ -1,6 +1,6 @@
 package ba.unsa.etf.rpr.controllers;
+
 import ba.unsa.etf.rpr.DAO;
-import ba.unsa.etf.rpr.models.Business;
 import ba.unsa.etf.rpr.models.Inspection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,11 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
-import javax.swing.*;
-import java.lang.reflect.Array;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -69,11 +65,11 @@ public class InspectorController {
         // listView init
         List<Inspection> inspections = DAO.getInstance().getInspectionsForInspector(DAO.usernameHash);
         inspections.forEach(i -> {
-                    if (!inspectionsByDay.containsKey(i.getDeadline()))
-                        inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
-                    if (!inspectionsByDay.get(i.getDeadline()).contains(i))
-                        inspectionsByDay.get(i.getDeadline()).add(i);
-                }
+                if (!inspectionsByDay.containsKey(i.getDeadline()))
+                    inspectionsByDay.put(i.getDeadline(), new ArrayList<>());
+                if (!inspectionsByDay.get(i.getDeadline()).contains(i))
+                    inspectionsByDay.get(i.getDeadline()).add(i);
+            }
         );
         loadDefaultInspectorView();
 
@@ -164,14 +160,23 @@ public class InspectorController {
     }
 
     public void sort() {
-        ArrayList<Inspection> temp = new ArrayList<>(observableInspections);
+        String option = options.getSelectionModel().getSelectedItem();
+        List<Inspection> temp = new ArrayList<>(observableInspections);
+
+        switch (option) {
+            case "Sve": break;
+            case "Završeno":
+                temp = temp.stream().filter(i -> i.getIssuedAt() != null).collect(Collectors.toList());
+                break;
+            case "Preostalo":
+                temp = temp.stream().filter(i -> i.getIssuedAt() == null).collect(Collectors.toList());
+                break;
+        }
+
         if(cbSort.isSelected()) {
             temp.sort(Comparator.comparing((Inspection i) -> i.getAddressedTo().getAddress()));
-            list.setItems(FXCollections.observableArrayList(temp));
         }
-        else {
-            list.setItems(observableInspections);
-        }
+        list.setItems(FXCollections.observableArrayList(temp));
     }
 
     public void updateDataOnDateChange() {
@@ -190,13 +195,13 @@ public class InspectorController {
         options.getSelectionModel().selectFirst();
     }
 
-    public void loadPreviousDayInspections(ActionEvent actionEvent) {
+    public void loadPreviousDayInspections() {
         if(cbSort.isSelected()) cbSort.setSelected(false);
         currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.minusDays(1)));
         updateDataOnDateChange();
     }
 
-    public void loadNextDayInspections(ActionEvent actionEvent) {
+    public void loadNextDayInspections() {
         if(cbSort.isSelected()) cbSort.setSelected(false);
         currentDateDisplay.setText(customDateFormatter(selectionDate = selectionDate.plusDays(1)));
         updateDataOnDateChange();
@@ -216,6 +221,7 @@ public class InspectorController {
             alert.getButtonTypes().setAll(writeChanges, ignoreChanges, back);
 
             Optional<ButtonType> result = alert.showAndWait();
+            //noinspection OptionalGetWithoutIsPresent
             if (result.get() == writeChanges) {
                 btnSave.fire();
             }

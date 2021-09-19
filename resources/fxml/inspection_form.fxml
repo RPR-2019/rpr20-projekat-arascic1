@@ -9,7 +9,7 @@
       <padding>
          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
       </padding>
-      <CheckBox fx:id="OKChecBox" mnemonicParsing="false" text="Sve OK">
+      <CheckBox fx:id="OKCheckBox" mnemonicParsing="false" text="Sve OK">
          <HBox.margin>
             <Insets />
          </HBox.margin>

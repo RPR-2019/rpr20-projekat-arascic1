@@ -106,10 +106,6 @@ public class InspectionCellController extends ListCell<Inspection> {
         }
     }
 
-    public InspectorController getParentController() {
-        return parentController;
-    }
-
     public void setParentController(InspectorController parentController) {
         this.parentController = parentController;
     }

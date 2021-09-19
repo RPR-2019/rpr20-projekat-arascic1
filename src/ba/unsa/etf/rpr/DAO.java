@@ -75,6 +75,38 @@ public class DAO {
         }
     }
 
+    public void resetDatabase() throws SQLException {
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate("DELETE FROM users");
+        stmt.executeUpdate("DELETE FROM businesses");
+        stmt.executeUpdate("DELETE FROM inspections");
+        stmt.executeUpdate("DELETE FROM penalties");
+        regenerate();
+    }
+
+    private void regenerate() {
+        Scanner ulaz = null;
+        try {
+            ulaz = new Scanner(new FileInputStream("resources/sql/init.sql"));
+            String sqlUpit = "";
+            while (ulaz.hasNext()) {
+                sqlUpit += ulaz.nextLine();
+                if ( sqlUpit.length() > 1 && sqlUpit.charAt( sqlUpit.length()-1 ) == ';') {
+                    try {
+                        Statement stmt = conn.createStatement();
+                        stmt.execute(sqlUpit);
+                        sqlUpit = "";
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            ulaz.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getHashForUsername(String username) {
         try {
             getUsernameHash.setString(1, username);

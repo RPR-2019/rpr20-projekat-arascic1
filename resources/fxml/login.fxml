@@ -6,70 +6,78 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<GridPane prefHeight="178.0" prefWidth="284.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ba.unsa.etf.rpr.controllers.LoginController">
-<columnConstraints>
-  <ColumnConstraints hgrow="SOMETIMES" maxWidth="165.0" minWidth="10.0" prefWidth="84.0" />
-  <ColumnConstraints hgrow="SOMETIMES" maxWidth="259.0" minWidth="10.0" prefWidth="200.0" />
-</columnConstraints>
-<stylesheets>
-        <URL value="@/css/style.css" />
-</stylesheets>
-<rowConstraints>
-  <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="23.0" vgrow="SOMETIMES" />
-  <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="23.0" vgrow="SOMETIMES" />
-  <RowConstraints maxHeight="55.0" minHeight="10.0" prefHeight="44.0" vgrow="SOMETIMES" />
-    <RowConstraints maxHeight="55.0" minHeight="10.0" prefHeight="45.0" vgrow="SOMETIMES" />
-    <RowConstraints maxHeight="55.0" minHeight="10.0" prefHeight="43.0" vgrow="SOMETIMES" />
-</rowConstraints>
- <children>
+<GridPane prefHeight="178.0" prefWidth="284.0" xmlns="http://javafx.com/javafx/11.0.1"
+          xmlns:fx="http://javafx.com/fxml/1" fx:controller="ba.unsa.etf.rpr.controllers.LoginController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="165.0" minWidth="10.0" prefWidth="84.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="259.0" minWidth="10.0" prefWidth="200.0"/>
+    </columnConstraints>
+    <stylesheets>
+        <URL value="@/css/style.css"/>
+    </stylesheets>
+    <rowConstraints>
+        <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="23.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="23.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="55.0" minHeight="10.0" prefHeight="44.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="55.0" minHeight="10.0" prefHeight="45.0" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="55.0" minHeight="10.0" prefHeight="43.0" vgrow="SOMETIMES"/>
+    </rowConstraints>
     <Label contentDisplay="CENTER" text="Password: " GridPane.rowIndex="3">
-         <padding>
-            <Insets bottom="5.0" left="20.0" right="5.0" top="5.0" />
-         </padding></Label>
-    <Label fx:id="message" alignment="CENTER" prefHeight="27.0" prefWidth="320.0" text="Molimo unesite vaše pristupne podatke." GridPane.columnSpan="2" GridPane.rowIndex="1">
-       <padding>
-          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-       </padding>
+        <padding>
+            <Insets bottom="5.0" left="20.0" right="5.0" top="5.0"/>
+        </padding>
     </Label>
-    <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="37.0" prefWidth="319.0" text="Dobrodošli!" textAlignment="CENTER" GridPane.columnSpan="2">
-       <padding>
-          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-       </padding>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
+    <Label fx:id="message" alignment="CENTER" prefHeight="27.0" prefWidth="320.0"
+           text="Molimo unesite vaše pristupne podatke." GridPane.columnSpan="2" GridPane.rowIndex="1">
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+        </padding>
+    </Label>
+    <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="37.0" prefWidth="319.0" text="Dobrodošli!"
+           textAlignment="CENTER" GridPane.columnSpan="2">
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+        </padding>
+        <opaqueInsets>
+            <Insets/>
+        </opaqueInsets>
     </Label>
     <Label contentDisplay="CENTER" text="Username: " GridPane.rowIndex="2">
-         <GridPane.margin>
-            <Insets />
-         </GridPane.margin>
-         <padding>
-            <Insets bottom="5.0" left="20.0" top="5.0" />
-         </padding></Label>
-      <TextField fx:id="username" prefHeight="25.0" prefWidth="236.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-         <GridPane.margin>
-            <Insets right="10.0" />
-         </GridPane.margin></TextField>
-      <PasswordField fx:id="password" onMouseClicked="#resetPassField" GridPane.columnIndex="1" GridPane.rowIndex="3">
-         <GridPane.margin>
-            <Insets right="10.0" />
-         </GridPane.margin></PasswordField>
-      <Button fx:id="btnLogin" mnemonicParsing="false" onAction="#logIn" prefWidth="52.0" text="Log in" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="TOP">
-         <GridPane.margin>
-            <Insets top="3.0" />
-         </GridPane.margin></Button>
-      <Label contentDisplay="CENTER" prefHeight="15.0" prefWidth="47.0" text="RPR 2021" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="TOP">
-         <font>
-            <Font name="System Italic" size="10.0" />
-         </font>
-         <GridPane.margin>
-            <Insets left="10.0" top="8.0" />
-         </GridPane.margin>
-      </Label>
-      <Label fx:id="loading" GridPane.columnIndex="1" GridPane.rowIndex="4">
-         <GridPane.margin>
-            <Insets bottom="10.0" left="110.0" />
-         </GridPane.margin>
-      </Label>
- </children>
+        <GridPane.margin>
+            <Insets/>
+        </GridPane.margin>
+        <padding>
+            <Insets bottom="5.0" left="20.0" top="5.0"/>
+        </padding>
+    </Label>
+    <TextField fx:id="username" prefHeight="25.0" prefWidth="236.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+        <GridPane.margin>
+          <Insets right="10.0"/>
+        </GridPane.margin>
+    </TextField>
+    <PasswordField fx:id="password" onMouseClicked="#resetPassField" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <GridPane.margin>
+          <Insets right="10.0"/>
+        </GridPane.margin>
+    </PasswordField>
+    <Button fx:id="btnLogin" mnemonicParsing="false" onAction="#logIn" prefWidth="52.0" text="Log in"
+            GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="TOP">
+        <GridPane.margin>
+          <Insets top="3.0"/>
+        </GridPane.margin>
+    </Button>
+    <Label contentDisplay="CENTER" prefHeight="15.0" prefWidth="47.0" text="RPR 2021" GridPane.halignment="CENTER"
+           GridPane.rowIndex="4" GridPane.valignment="TOP">
+        <font>
+          <Font name="System Italic" size="10.0"/>
+        </font>
+        <GridPane.margin>
+          <Insets left="10.0" top="8.0"/>
+        </GridPane.margin>
+    </Label>
+    <Label fx:id="loading" GridPane.columnIndex="1" GridPane.rowIndex="4">
+        <GridPane.margin>
+          <Insets bottom="10.0" left="110.0"/>
+        </GridPane.margin>
+    </Label>
 </GridPane>

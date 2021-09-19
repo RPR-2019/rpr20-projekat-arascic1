@@ -3,7 +3,6 @@ package ba.unsa.etf.rpr.controllers;
 import ba.unsa.etf.rpr.DAO;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -12,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -29,8 +27,6 @@ public class LoginController {
     public Button btnLogin;
     public Label loading;
 
-    private DAO DB;
-
     private void successfulAuthentication(Thread loadingMessage) {
         message.getStyleClass().removeAll("invalidField");
         message.getStyleClass().addAll("beforeDeadline");
@@ -43,14 +39,16 @@ public class LoginController {
         String usernameHash = SHA256(username.getText());
         String passwordHash = SHA256(password.getText());
 
-        DB = DAO.getInstance();
+        DAO DB = DAO.getInstance();
         Boolean authenticationResponse = DB.authenticate(usernameHash, passwordHash);
         loading.setVisible(true);
         Semaphore semaphore = new Semaphore(1);
 
         Thread loadingMessage = new Thread(() -> { synchronized (this) {
-            while(semaphore.availablePermits() == 1);
+            //noinspection StatementWithEmptyBody
+            while(semaphore.availablePermits() == 1); // spinlock
             int counter = 0;
+
             do {
                 counter++;
                 StringBuilder dots = new StringBuilder();
@@ -62,6 +60,7 @@ public class LoginController {
                     e.printStackTrace();
                 }
             } while (semaphore.availablePermits() == 0);
+
             Platform.runLater(() -> loading.setText(""));
         }});
 
@@ -81,9 +80,7 @@ public class LoginController {
                 });
             }
             else if (authenticationResponse.equals(true)) {
-                Platform.runLater(() -> {
-                    successfulAuthentication(loadingMessage);
-                });
+                Platform.runLater(() -> successfulAuthentication(loadingMessage));
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/manager_main_menu.fxml"));
                     Parent root = loader.load();
@@ -106,9 +103,7 @@ public class LoginController {
                 }
             }
             else if (authenticationResponse.equals(false)) {
-                Platform.runLater(() -> {
-                    successfulAuthentication(loadingMessage);
-                });
+                Platform.runLater(() -> successfulAuthentication(loadingMessage));
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/inspector_main_menu.fxml"));
                     Parent root = loader.load();
@@ -124,7 +119,9 @@ public class LoginController {
                                 i.consume();
                             }
                         });
-                        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+                        if(((Node) actionEvent.getSource()).getScene().getWindow() != null) {
+                            ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+                        }
                         stage.show();
                     });
                 } catch (IOException e) {
@@ -155,7 +152,7 @@ public class LoginController {
         }
     }
 
-    public void resetPassField(MouseEvent mouseEvent) {
+    public void resetPassField() {
         if(!password.getText().isEmpty()) password.setText("");
     }
 }
