@@ -1,19 +1,10 @@
 # rpr20-projekat-arascic1
 rpr20-projekat-arascic1 created by GitHub Classroom
 
-Pristup bazi je otvoren. Za aplikaciju su definirana tri korisnička profila sa sljedećim pristupnim podacima:
+Pristup bazi je otvoren. Za aplikaciju su definirana tri korisnička profila sa sljedećim pristupnim podacima (username / password):
 
-1. (Inspektor)
+- 1 (Inspektor) :: (user1 / 123456)
 
-Username: user1
-Password: 123456 
+- 2 (Inspektor) :: (user2 / 123456789)
 
-2. (Inspektor)
-
-Username: user2
-Password: 123456789
-
-3. (Menažder / Upravnik)
-
-Username: user3
-Password: qwerty
+- 3 (Menažder / Upravnik) :: (user3 / qwerty)
